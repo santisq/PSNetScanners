@@ -1,11 +1,11 @@
 # Define List of IPs / Hosts to Ping
 # $list = 'host1', 'host2', 'host3'
 $list = 1..254 | ForEach-Object {
-    "192.168.1.$_"
+    "10.10.1.$_"
 }
 
 function Pinger {
-[cmdletbinding(DefaultParameterSetName = 'Count')]
+[cmdletbinding(DefaultParameterSetName = 'DefaultParams')]
 param(
     [parameter(
         Mandatory,
@@ -14,11 +14,12 @@ param(
     )]
     [string]$Address,
     [parameter(
-        ParameterSetName = 'Count',
+        ParameterSetName = 'DefaultParams',
         Position = 1
     )]
     [int]$Count = 1,
     [parameter(
+        ParameterSetName = 'DefaultParams',
         Position = 2
     )]
     [int]$TimeOut = 1000,
@@ -28,7 +29,7 @@ param(
     )]
     [switch]$Quiet,
     [parameter(
-        ParameterSetName = 'Buffer',
+        ParameterSetName = 'DefaultParams',
         Position = 3
     )]
     [string]$Buffer = 'aaaaaaaaaa'
@@ -98,6 +99,14 @@ $scriptBlock = {
 
     # Load the function in this Scope
     . ([scriptblock]::Create($Pinger))
+
+    # Define which arguments will be used for Pinger
+    # Default Values are:
+    #
+    #   -Count 1
+    #   -TimeOut 1000 (Milliseconds)
+    #   -Buffer 'aaaaaaaaaa' (10 bytes)
+    #   -Quiet:$false
 
     Pinger -Address $ip
 }
