@@ -1,7 +1,7 @@
 # Define List of IPs / Hosts to Ping
 # $list = 'host1', 'host2', 'host3'
 $list = 1..254 | ForEach-Object {
-    "10.10.1.$_"
+    "192.168.1.$_"
 }
 
 function Pinger {
@@ -139,3 +139,5 @@ $results = $runspaces.ForEach({
 
 $runspaces.Clear()
 $RunspacePool.Dispose()
+
+$results | Format-Table -AutoSize
