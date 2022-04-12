@@ -1,104 +1,73 @@
+$ErrorActionPreference = 'Stop'
+
 # Define List of IPs / Hosts to Ping
 # $list = 'host1', 'host2', 'host3'
 $list = 1..254 | ForEach-Object {
-    "192.168.1.$_"
+    "192.168.0.$_"
 }
 
-function Pinger {
-[cmdletbinding(DefaultParameterSetName = 'DefaultParams')]
-param(
-    [parameter(
-        Mandatory,
-        ValueFromPipeline,
-        Position = 0
-    )]
-    [string]$Address,
-    [parameter(
-        ParameterSetName = 'DefaultParams',
-        Position = 1
-    )]
-    [int]$Count = 1,
-    [parameter(
-        ParameterSetName = 'DefaultParams',
-        Position = 2
-    )]
-    [int]$TimeOut = 1000,
-    [parameter(
-        ParameterSetName = 'Quiet',
-        Position = 1
-    )]
-    [switch]$Quiet,
-    [parameter(
-        ParameterSetName = 'DefaultParams',
-        Position = 3
-    )]
-    [string]$Buffer = 'aaaaaaaaaa'
-)
+function Test-ICMPConnection {
+    [cmdletbinding(DefaultParameterSetName = 'DefaultParams')]
+    param(
+        [parameter(Mandatory, ValueFromPipeline, Position = 0)]
+        [string[]] $Address,
+        [parameter(ParameterSetName = 'DefaultParams', Position = 1)]
+        [int] $Count = 4,
+        [parameter(ParameterSetName = 'DefaultParams', Position = 2)]
+        [int] $TimeOut = 1000,
+        [parameter(ParameterSetName = 'Quiet', Position = 1)]
+        [switch] $Quiet,
+        [parameter(ParameterSetName = 'DefaultParams', Position = 3)]
+        [string] $Buffer = 'aaaaaaaaaa'
+    )
 
-    process
-    {
-        $ping = [System.Net.NetworkInformation.Ping]::new()
-        $options = [System.Net.NetworkInformation.PingOptions]::new()
+    begin {
+        $ping     = [System.Net.NetworkInformation.Ping]::new()
+        $options  = [System.Net.NetworkInformation.PingOptions]::new()
+        $data     = [System.Text.Encoding]::Unicode.GetBytes($Buffer)
+        $hostname = $env:COMPUTERNAME
         $options.DontFragment = $true
-        $data = [System.Text.Encoding]::Unicode.GetBytes($Buffer)
-        $hostname = [System.Net.Dns]::GetHostName()
-
-        if($Quiet)
-        {
-            return [bool]$ping.Send(
-                $Address,
-                $TimeOut,
-                $data,
-                $options
-            ).RoundtripTime
-        }
-
-        1..$Count | ForEach-Object {
-
-            $response = $ping.Send($Address, $TimeOut, $data, $options)
-            
-            $latency = (
-                '*',
-                [string]::Format(
-                    '{0} ms',
-                    $response.RoundtripTime
-                )
-            )[$response.Status -eq 'Success']
-
-            $resolver = try
-            {
-                [System.Net.Dns]::GetHostEntry($Address).HostName
-            }
-            catch
-            {
-                '*'
+    }
+    process {
+        foreach($i in $Address) {
+            if($Quiet.IsPresent) {
+                return [bool]$ping.Send($i, $TimeOut, $data, $options).RoundtripTime
             }
 
-            [pscustomobject]@{
-                Ping     = $_
-                Source   = $hostname
-                Address  = $Address
-                HostName = $resolver
-                Latency  = $latency
-                Status   = $response.Status
+            $resolver = try {
+                [Dns]::GetHostEntry($i).HostName
+            }
+            catch { '*' }
+
+            1..$Count | ForEach-Object {
+                $response = $ping.Send($i, $TimeOut, $data, $options)
+                $latency = (
+                    '*', [string]::Format('{0} ms', $response.RoundtripTime)
+                )[$response.Status -eq 'Success']
+
+                [pscustomobject]@{
+                    Ping        = $_
+                    Source      = $hostname
+                    Address     = $response.Address
+                    Destination = $resolver
+                    Latency     = $latency
+                    Status      = $response.Status
+                }
             }
         }
     }
+    end {
+        $ping.ForEach('Dispose')
+    }
 }
 
-# Store the function as String
-$funcDef = "function Pinger { $function:Pinger }"
-
-# Change this value for tweaking
-$Threshold = 100
-$RunspacePool = [runspacefactory]::CreateRunspacePool(1, $Threshold)
-$RunspacePool.Open()
-
+# Store the function Definition
+$funcDef = ${function:Test-ICMPConnection}.ToString()
 $scriptBlock = {
-    param([string]$ip, [string]$Pinger)
+    param([string] $ip, [string] $funcDef)
 
     # Load the function in this Scope
-    . ([scriptblock]::Create($Pinger))
+    ${function:Test-ICMPConnection} = $funcDef
 
     # Define which arguments will be used for Pinger
     # Default Values are:
@@ -108,36 +77,41 @@ $scriptBlock = {
     #   -Buffer 'aaaaaaaaaa' (10 bytes)
     #   -Quiet:$false
 
-    Pinger -Address $ip
+    Test-ICMPConnection -Address $ip -Count 1
 }
 
-$runspaces = foreach($ip in $list)
-{
-    $params = @{
-        IP = $ip
-        Pinger = $funcDef
+& {
+    try {
+        # Change this value for tweaking
+        $Threshold = 100
+        $RunspacePool = [runspacefactory]::CreateRunspacePool(1, $Threshold)
+        $RunspacePool.Open()
+
+        $runspaces = foreach($ip in $list) {
+            $params = @{
+                IP      = $ip
+                funcDef = $funcDef
+            }
+
+            $psinstance = [powershell]::Create().AddScript($scriptBlock).AddParameters($params)
+            $psinstance.RunspacePool = $RunspacePool
+
+            [pscustomobject]@{
+                Instance = $psinstance
+                Handle   = $psinstance.BeginInvoke()
+            }
+        }
+
+        foreach($r in $runspaces) {
+            $r.Instance.EndInvoke($r.Handle)
+            $r.Instance.foreach('Dispose')
+        }
     }
-
-    $psinstance = [powershell]::Create().AddScript($scriptBlock).AddParameters($params)
-    $psinstance.RunspacePool = $RunspacePool
-    
-    [pscustomobject]@{
-        Instance = $psinstance
-        Handle = $psinstance.BeginInvoke()
+    catch {
+        Write-Warning $_.Exception.Message
     }
-}
-
-while($runspaces.Handle.IsCompleted -contains $false)
-{
-    Start-Sleep -Milliseconds 500
-}
-
-$results = $runspaces.ForEach({
-    $_.Instance.EndInvoke($_.Handle)
-    $_.Instance.Dispose()
-})
-
-$runspaces.Clear()
-$RunspacePool.Dispose()
-
-$results | Format-Table -AutoSize
+    finally {
+        $runspaces.foreach('Clear')
+        $RunspacePool.foreach('Dispose')
+    }
+} | Format-Table -AutoSize
