@@ -35,7 +35,7 @@ function Test-ICMPConnection {
             }
 
             $resolver = try {
-                [Dns]::GetHostEntry($i).HostName
+                [System.Net.Dns]::GetHostEntry($i).HostName
             }
             catch { '*' }
 
