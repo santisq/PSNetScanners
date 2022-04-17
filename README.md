@@ -3,7 +3,7 @@
 ### DESCRIPTION
 PowerShell utilty to scan IP ranges or hostnames using [`Runspace`](https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.runspaces.runspace?view=powershellsdk-7.0.0) for faster execution.
 
-`Pinger` function uses [`System.Net.NetworkInformation.Ping`](https://docs.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping?view=net-6.0) to send the echo request messages (ICMP) and [`Dns.GetHostEntry` method](https://docs.microsoft.com/en-us/dotnet/api/system.net.dns.gethostentry?view=net-6.0) for IP to hostname DNS resolution.
+`Test-ICMPConnection` function uses [`System.Net.NetworkInformation.Ping`](https://docs.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping?view=net-6.0) to send the echo request messages (ICMP) and [`Dns.GetHostEntry` method](https://docs.microsoft.com/en-us/dotnet/api/system.net.dns.gethostentry?view=net-6.0) for IP to hostname DNS resolution.
 
 ### OUTPUT
 
@@ -32,7 +32,7 @@ $list = 1..254 | ForEach-Object {
 
 ### MEASUREMENTS
 
-Below are the measurements scanning a 254 IP range with `Test-ICMPConnection` default parameters:
+Below are the measurements scanning a 254 IP range with `Test-ICMPConnection` default script parameters:
 
 ```
 Days              : 0
