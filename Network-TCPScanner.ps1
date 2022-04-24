@@ -2,7 +2,7 @@ $Threshold = 100 # => Number of threads running
 [int[]] $PortsToScan = 80, 443, 125, 8080
 [string[]] $HostsToScan = 'google.com', 'cisco.com', 'amazon.com'
 
-function Test-TCPPort {
+function Test-TCPConnection {
     [cmdletbinding()]
     param(
         [parameter(Mandatory, Valuefrompipeline)]
@@ -51,13 +51,12 @@ function Test-TCPPort {
             $tasks.RemoveAt($id)
         } while($tasks -and $timer.ElapsedMilliseconds -le $timeout)
 
-        if($tasks) {
-            foreach($task in $tasks) {
-                $task.TCP.Instance.foreach('Dispose')
-                $task.Remove('TCP')
-                $task['Success'] = $false
-                [pscustomobject] $task
-            }
+        # clear remaining tasks, if any
+        foreach($task in $tasks) {
+            $task.TCP.Instance.foreach('Dispose')
+            $task.Remove('TCP')
+            $task['Success'] = $false
+            [pscustomobject] $task
         }
     }
 }
@@ -65,15 +64,15 @@ function Test-TCPPort {
 & {
     try {
         # Store function definition
-        $funcDef = ${function:Test-TCPPort}.ToString()
+        $funcDef = ${function:Test-TCPConnection}.ToString()
         $RunspacePool = [runspacefactory]::CreateRunspacePool(1, $Threshold)
         $RunspacePool.Open()
         $scriptBlock = {
             param([string] $hostname, [int[]] $ports, [string] $func)
 
             # Load the function in this Scope
-            ${function:Test-TCPPort} = $func
-            Test-TCPPort -Name $hostname -Port $ports
+            ${function:Test-TCPConnection} = $func
+            Test-TCPConnection -Name $hostname -Port $ports
         }
 
         $runspaces = foreach($i in $HostsToScan) {
