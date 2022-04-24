@@ -7,7 +7,7 @@ function Test-TCPPort {
     param(
         [parameter(Mandatory, Valuefrompipeline)]
         [string] $Name,
-        [parameter(Mandatory)]
+        [parameter(Mandatory, Position = 1)]
         [int[]] $Port,
         [int] $TimeOut = 1200
     )
@@ -33,7 +33,7 @@ function Test-TCPPort {
     }
     end {
         do {
-            $id = [System.Threading.WaitHandle]::WaitAny($tasks[0..62].TCP.Task.AsyncWaitHandle, $TimeOut)
+            $id = [System.Threading.WaitHandle]::WaitAny($tasks[0..62].TCP.Task.AsyncWaitHandle, 200)
             if($id -eq [System.Threading.WaitHandle]::WaitTimeout) {
                 continue
             }
@@ -44,12 +44,15 @@ function Test-TCPPort {
             $thisTask.Remove('TCP')
             [pscustomobject] $thisTask
             $tasks.RemoveAt($id)
-        } while($tasks -and $timer.Milliseconds -le $timeout)
+        } while($tasks -and $timer.ElapsedMilliseconds -le $timeout)
 
         if($tasks) {
-            $tasks.TCP.Instance.foreach('Dispose')
-            $tasks.foreach{ $_.Remove('TCP') }
-            $tasks.foreach{ [pscustomobject] $_ }
+            foreach($task in $tasks) {
+                $task.TCP.Instance.foreach('Dispose')
+                $task.Remove('TCP')
+                $task['Success'] = $false
+                [pscustomobject] $task
+            }
         }
     }
 }
