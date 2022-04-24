@@ -12,8 +12,8 @@ function Test-TCPPort {
         [ValidateRange(1, 65535)]
         [int[]] $Port,
 
-        # 40 ms as minimum, reasonable for TCP connection
-        [ValidateRange(40, [int]::MaxValue)]
+        # 1 second minimum, reasonable for TCP connection
+        [ValidateRange(1000, [int]::MaxValue)]
         [int] $TimeOut = 1200
     )
 
