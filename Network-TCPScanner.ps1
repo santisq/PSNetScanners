@@ -2,41 +2,54 @@ $Threshold = 100 # => Number of threads running
 [int[]] $PortsToScan = 80, 443, 125, 8080
 [string[]] $HostsToScan = 'google.com', 'cisco.com', 'amazon.com'
 
-# Define a TCP Port scanner function
-function Test-Port {
+function Test-TCPPort {
     [cmdletbinding()]
     param(
         [parameter(Mandatory, Valuefrompipeline)]
         [string] $Name,
         [parameter(Mandatory)]
         [int[]] $Port,
-        [switch] $Detailed,
         [int] $TimeOut = 1200
     )
 
+    begin {
+        $timer = [System.Diagnostics.Stopwatch]::StartNew()
+        $tasks = [System.Collections.Generic.List[Object]]::new()
+    }
     process {
-        foreach($i in $port) {
-            $response = [ordered]@{
-                Host = $name
-                Port = $i
-            }
-
-            try {
-                $testPort = [System.Net.Sockets.TCPClient]::new()
-                $testPort.SendTimeout = $TimeOut
-                $testPort.ReceiveTimeout = $TimeOut
-                $testPort.Connect($name, $i)
-            }
-            catch {
-                if($Detailed.IsPresent) {
-                    $response['Message'] = $_.Exception.InnerException.Message
+        foreach($i in $Port) {
+            $tcp  = [System.Net.Sockets.TCPClient]::new()
+            $task = [ordered]@{
+                Source       = $env:COMPUTERNAME
+                Destionation = $Name
+                Port         = $i
+                TCP          = [ordered]@{
+                    Instance = $tcp
+                    Task     = $tcp.ConnectAsync($Name, $i)
                 }
             }
-            finally {
-                $response['TestConnection'] = $testPort.Connected
-                $testPort.Close()
-                [pscustomobject] $response
+            $tasks.Add($task)
+        }
+    }
+    end {
+        do {
+            $id = [System.Threading.WaitHandle]::WaitAny($tasks[0..62].TCP.Task.AsyncWaitHandle, $TimeOut)
+            if($id -eq [System.Threading.WaitHandle]::WaitTimeout) {
+                continue
             }
+            $thisTask = $tasks[$id]
+            $instance, $task = $thisTask.TCP[0, 1]
+            $thisTask['Success'] = $task.Status -eq 'RanToCompletion'
+            $instance.foreach('Dispose') # Avoid any throws here
+            $thisTask.Remove('TCP')
+            [pscustomobject] $thisTask
+            $tasks.RemoveAt($id)
+        } while($tasks -and $timer.Milliseconds -le $timeout)
+
+        if($tasks) {
+            $tasks.TCP.Instance.foreach('Dispose')
+            $tasks.foreach{ $_.Remove('TCP') }
+            $tasks.foreach{ [pscustomobject] $_ }
         }
     }
 }
@@ -44,32 +57,30 @@ function Test-Port {
 & {
     try {
         # Store function definition
-        $funcDef = ${function:Test-Port}.ToString()
+        $funcDef = ${function:Test-TCPPort}.ToString()
         $RunspacePool = [runspacefactory]::CreateRunspacePool(1, $Threshold)
         $RunspacePool.Open()
         $scriptBlock = {
             param([string] $hostname, [int[]] $ports, [string] $func)
 
             # Load the function in this Scope
-            ${function:Test-Port} = $func
-            Test-Port -Name $hostname -Port $ports
+            ${function:Test-TCPPort} = $func
+            Test-TCPPort -Name $hostname -Port $ports
         }
 
         $runspaces = foreach($i in $HostsToScan) {
-            foreach($p in $PortsToScan) {
-                $params = @{
-                    hostname = $i
-                    ports    = $p
-                    func     = $funcDef
-                }
+            $params = @{
+                hostname = $i
+                ports    = $PortsToScan
+                func     = $funcDef
+            }
 
-                $psinstance = [powershell]::Create().AddScript($scriptBlock).AddParameters($params)
-                $psinstance.RunspacePool = $RunspacePool
+            $psinstance = [powershell]::Create().AddScript($scriptBlock).AddParameters($params)
+            $psinstance.RunspacePool = $RunspacePool
 
-                [pscustomobject]@{
-                    Instance = $psinstance
-                    Handle   = $psinstance.BeginInvoke()
-                }
+            [pscustomobject]@{
+                Instance = $psinstance
+                Handle   = $psinstance.BeginInvoke()
             }
         }
 
