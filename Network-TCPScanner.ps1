@@ -7,8 +7,13 @@ function Test-TCPPort {
     param(
         [parameter(Mandatory, Valuefrompipeline)]
         [string] $Name,
+
         [parameter(Mandatory, Position = 1)]
+        [ValidateRange(1, 65535)]
         [int[]] $Port,
+
+        # 40 ms as minimum, reasonable for TCP connection
+        [ValidateRange(40, [int]::MaxValue)]
         [int] $TimeOut = 1200
     )
 
