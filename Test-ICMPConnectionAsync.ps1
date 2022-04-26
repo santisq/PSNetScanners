@@ -20,6 +20,7 @@ function Test-ICMPConnectionAsync {
     begin {
         $tasks = [List[OrderedDictionary]]::new()
         $data  = [byte[]]::new($BufferSize)
+        
         function Wait-Tasks {
             param($s)
 
