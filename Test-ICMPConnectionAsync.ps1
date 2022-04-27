@@ -22,8 +22,6 @@ function Test-ICMPConnectionAsync {
         $data  = [byte[]]::new($BufferSize)
         
         function Wait-Tasks {
-            param($s)
-
             do {
                 $id = [WaitHandle]::WaitAny($tasks.PingTask.AsyncWaitHandle, 200)
                 if($id -eq [WaitHandle]::WaitTimeout -or -not $tasks[$id].DnsTask.IsCompleted) {
@@ -59,7 +57,7 @@ function Test-ICMPConnectionAsync {
     process {
         foreach($addr in $Address) {
             if($tasks.Count -eq 62) {
-                Wait-Tasks $tasks
+                Wait-Tasks
             }
 
             $ping     = [Ping]::new()
@@ -74,7 +72,7 @@ function Test-ICMPConnectionAsync {
         }
     }
     end {
-        Wait-Tasks $tasks
+        Wait-Tasks
     }
 }
 
