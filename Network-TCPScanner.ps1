@@ -2,77 +2,86 @@ $Threshold = 100 # => Number of threads running
 [int[]] $PortsToScan = 80, 443, 125, 8080
 [string[]] $HostsToScan = 'google.com', 'cisco.com', 'amazon.com'
 
-function Test-TCPConnection {
+function Test-TCPConnectionAsync {
     [cmdletbinding()]
     param(
         [parameter(Mandatory, Valuefrompipeline)]
-        [string] $Name,
+        [string[]] $Target,
 
         [parameter(Mandatory, Position = 1)]
         [ValidateRange(1, 65535)]
         [int[]] $Port,
 
         # 1 second minimum, reasonable for TCP connection
+        [parameter(Position = 2)]
         [ValidateRange(1000, [int]::MaxValue)]
         [int] $TimeOut = 1200
     )
 
     begin {
         $timer = [System.Diagnostics.Stopwatch]::StartNew()
-        $tasks = [System.Collections.Generic.List[Object]]::new()
-    }
-    process {
-        foreach($i in $Port) {
-            $tcp  = [System.Net.Sockets.TCPClient]::new()
-            $task = [ordered]@{
-                Source       = $env:COMPUTERNAME
-                Destionation = $Name
-                Port         = $i
-                TCP          = [ordered]@{
-                    Instance = $tcp
-                    Task     = $tcp.ConnectAsync($Name, $i)
+        $tasks = [System.Collections.Generic.List[System.Collections.Specialized.OrderedDictionary]]::new()
+
+        function Wait-Tasks {
+            do {
+                $id = [System.Threading.WaitHandle]::WaitAny($tasks.Task.AsyncWaitHandle, 200)
+                if($id -eq [System.Threading.WaitHandle]::WaitTimeout) {
+                    continue
+                }
+                $instance, $task, $output = $tasks[$id][$tasks[$id].PSBase.Keys]
+                $output['Success'] = $task.Status -eq [System.Threading.Tasks.TaskStatus]::RanToCompletion
+                $instance.ForEach('Dispose') # Avoid any throws here
+                $tasks.RemoveAt($id)
+                [pscustomobject] $output
+            } while($tasks -and $timer.ElapsedMilliseconds -le $timeout)
+
+            if($timer.ElapsedMilliseconds -gt $timeout) {
+                foreach($t in $tasks) {
+                    $instance, $task, $output = $t[$t.PSBase.Keys]
+                    $output['Success'] = $task.Status -eq [System.Threading.Tasks.TaskStatus]::RanToCompletion
+                    $instance.ForEach('Dispose') # Avoid any throws here
+                    [pscustomobject] $output
                 }
             }
-            $tasks.Add($task)
+        }
+    }
+    process {
+        foreach($t in $Target) {
+            foreach($i in $Port) {
+                if($tasks.Count -eq 62) {
+                    Wait-Tasks
+                }
+
+                $tcp = [System.Net.Sockets.TcpClient]::new()
+                $tasks.Add([ordered]@{
+                    Instance = $tcp
+                    Task     = $tcp.ConnectAsync($t, $i)
+                    Output   = [ordered]@{
+                        Source       = $env:COMPUTERNAME
+                        Destionation = $t
+                        Port         = $i
+                    }
+                })
+            }
         }
     }
     end {
-        do {
-            $id = [System.Threading.WaitHandle]::WaitAny($tasks[0..62].TCP.Task.AsyncWaitHandle, 200)
-            if($id -eq [System.Threading.WaitHandle]::WaitTimeout) {
-                continue
-            }
-            $thisTask = $tasks[$id]
-            $instance, $task = $thisTask.TCP[0, 1]
-            $thisTask['Success'] = $task.Status -eq 'RanToCompletion'
-            $instance.foreach('Dispose') # Avoid any throws here
-            $thisTask.Remove('TCP')
-            [pscustomobject] $thisTask
-            $tasks.RemoveAt($id)
-        } while($tasks -and $timer.ElapsedMilliseconds -le $timeout)
-
-        # clear remaining tasks, if any
-        foreach($task in $tasks) {
-            $task.TCP.Instance.foreach('Dispose')
-            $task.Remove('TCP')
-            $task['Success'] = $false
-            [pscustomobject] $task
-        }
+        Wait-Tasks
     }
 }
 
 & {
     try {
         # Store function definition
-        $funcDef = ${function:Test-TCPConnection}.ToString()
+        $funcDef = ${function:Test-TCPConnectionAsync}.ToString()
         $RunspacePool = [runspacefactory]::CreateRunspacePool(1, $Threshold)
         $RunspacePool.Open()
         $scriptBlock = {
             param([string] $hostname, [int[]] $ports, [string] $func)
 
             # Load the function in this Scope
-            ${function:Test-TCPConnection} = $func
-            Test-TCPConnection -Name $hostname -Port $ports
+            ${function:Test-TCPConnectionAsync} = $func
+            Test-TCPConnectionAsync -Target $hostname -Port $ports -TimeOut 2000
         }
 
         $runspaces = foreach($i in $HostsToScan) {
