@@ -31,7 +31,7 @@ function Test-TCPConnectionAsync {
                     continue
                 }
                 $instance, $task, $output = $tasks[$id][$tasks[$id].PSBase.Keys]
-                $output['Success'] = $task.IsCompletedSuccessfully
+                $output['Success'] = $task.Status -eq [Tasks.TaskStatus]::RanToCompletion
                 $instance.ForEach('Dispose') # Avoid any throws here
                 $tasks.RemoveAt($id)
                 [pscustomobject] $output
@@ -40,7 +40,7 @@ function Test-TCPConnectionAsync {
             if($timer.ElapsedMilliseconds -gt $timeout) {
                 foreach($t in $tasks) {
                     $instance, $task, $output = $t[$t.PSBase.Keys]
-                    $output['Success'] = $task.IsCompletedSuccessfully
+                    $output['Success'] = $task.Status -eq [Tasks.TaskStatus]::RanToCompletion
                     $instance.ForEach('Dispose') # Avoid any throws here
                     [pscustomobject] $output
                 }
