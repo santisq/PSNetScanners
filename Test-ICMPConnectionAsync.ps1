@@ -1,4 +1,4 @@
-using namespace System.Threading
+using namespace System.Threading.Tasks
 using namespace System.Collections.Generic
 using namespace System.Net.NetworkInformation
 using namespace System.Net
@@ -20,46 +20,9 @@ function Test-ICMPConnectionAsync {
     begin {
         $tasks = [List[OrderedDictionary]]::new()
         $data  = [byte[]]::new($BufferSize)
-        
-        function Wait-Tasks {
-            do {
-                $id = [WaitHandle]::WaitAny($tasks.PingTask.AsyncWaitHandle, 200)
-                if($id -eq [WaitHandle]::WaitTimeout -or -not $tasks[$id].DnsTask.IsCompleted) {
-                    continue
-                }
-                $target, $instance, $ping, $dns = $tasks[$id][$tasks[$id].PSBase.Keys]
-                $instance.ForEach('Dispose')
-                $tasks.RemoveAt($id)
-
-                $response = $ping.GetAwaiter().GetResult()
-
-                $latency = (
-                    '*', [string]::Format('{0} ms', $response.RoundtripTime)
-                )[$response.Status -eq 'Success']
-
-                if($dns.Status -eq 'RanToCompletion') {
-                    $dnsresol = $dns.GetAwaiter().GetResult().HostName
-                }
-                else { $dnsresol = '*' }
-
-                [pscustomobject]@{
-                    Source     = $env:COMPUTERNAME
-                    Target     = $target
-                    Address    = $response.Address
-                    DnsName    = $dnsresol
-                    Latency    = $latency
-                    BufferSize = $data.Length
-                    Status     = $response.Status
-                }
-            } while($tasks)
-        }
     }
     process {
         foreach($addr in $Address) {
-            if($tasks.Count -eq 62) {
-                Wait-Tasks
-            }
-
             $ping     = [Ping]::new()
             $options  = [PingOptions]::new()
             $options.DontFragment = $true
@@ -72,7 +35,31 @@ function Test-ICMPConnectionAsync {
         }
     }
     end {
-        Wait-Tasks
+        $null = [Task]::WaitAll($tasks.PingTask)
+        foreach($task in $tasks) {
+            $target, $instance, $ping, $dns = $task[$task.PSBase.Keys]
+            $instance.ForEach('Dispose')
+            $response = $ping.GetAwaiter().GetResult()
+
+            $latency = (
+                '*', [string]::Format('{0} ms', $response.RoundtripTime)
+            )[$response.Status -eq 'Success']
+
+            if($dns.Status -eq 'RanToCompletion') {
+                $dnsresol = $dns.GetAwaiter().GetResult().HostName
+            }
+            else { $dnsresol = '*' }
+
+            [pscustomobject]@{
+                Source     = $env:COMPUTERNAME
+                Target     = $target
+                Address    = $response.Address
+                DnsName    = $dnsresol
+                Latency    = $latency
+                BufferSize = $data.Length
+                Status     = $response.Status
+            }
+        }
     }
 }
 
