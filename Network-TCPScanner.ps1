@@ -21,29 +21,6 @@ function Test-TCPConnectionAsync {
     begin {
         $timer = [System.Diagnostics.Stopwatch]::StartNew()
         $tasks = [System.Collections.Generic.List[System.Collections.Specialized.OrderedDictionary]]::new()
-
-        function Wait-Tasks {
-            do {
-                $id = [System.Threading.WaitHandle]::WaitAny($tasks.Task.AsyncWaitHandle, 200)
-                if($id -eq [System.Threading.WaitHandle]::WaitTimeout) {
-                    continue
-                }
-                $instance, $task, $output = $tasks[$id][$tasks[$id].PSBase.Keys]
-                $output['Success'] = $task.Status -eq [System.Threading.Tasks.TaskStatus]::RanToCompletion
-                $instance.ForEach('Dispose') # Avoid any throws here
-                $tasks.RemoveAt($id)
-                [pscustomobject] $output
-            } while($tasks -and $timer.ElapsedMilliseconds -le $timeout)
-
-            if($timer.ElapsedMilliseconds -gt $timeout) {
-                foreach($t in $tasks) {
-                    $instance, $task, $output = $t[$t.PSBase.Keys]
-                    $output['Success'] = $task.Status -eq [System.Threading.Tasks.TaskStatus]::RanToCompletion
-                    $instance.ForEach('Dispose') # Avoid any throws here
-                    [pscustomobject] $output
-                }
-            }
-        }
     }
     process {
         foreach($t in $Target) {
@@ -66,7 +43,24 @@ function Test-TCPConnectionAsync {
         }
     }
     end {
-        Wait-Tasks
+        do {
+            $id = [System.Threading.Tasks.Task]::WaitAny($tasks.Task, 200)
+            if($id -eq -1) {
+                continue
+            }
+            $instance, $task, $output = $tasks[$id][$tasks[$id].PSBase.Keys]
+            $output['Success'] = $task.Status -eq [System.Threading.Tasks.TaskStatus]::RanToCompletion
+            $instance.ForEach('Dispose') # Avoid any throws here
+            $tasks.RemoveAt($id)
+            [pscustomobject] $output
+        } while($tasks -and $timer.ElapsedMilliseconds -le $timeout)
+
+        foreach($t in $tasks) {
+            $instance, $task, $output = $t[$t.PSBase.Keys]
+            $output['Success'] = $task.Status -eq [System.Threading.Tasks.TaskStatus]::RanToCompletion
+            $instance.ForEach('Dispose') # Avoid any throws here
+            [pscustomobject] $output
+        }
     }
 }
 
