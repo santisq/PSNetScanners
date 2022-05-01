@@ -1,7 +1,7 @@
 # PowerShell Network Scanners
 
 ## DESCRIPTION
-Two PowerShell scripts designed to scan Network IP Ranges or hostnames using [`Runspace`](https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.runspaces.runspace?view=powershellsdk-7.0.0) for faster execution.
+Two PowerShell scripts designed to scan Network IP Ranges or hostnames using [`Runspace`](https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.runspaces.runspace?view=powershellsdk-7.0.0) for faster execution. And two standalone functions using async techniques for ICMP and TCP scanning.
 
 - [__Network-IPScanner__](https://github.com/santysq/Network-IPScanner/blob/main/Network-IPScanner.ps1): Sends ICMP echo requests in parallel. `Test-ICMPConnection` function uses [`System.Net.NetworkInformation.Ping`](https://docs.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping?view=net-6.0) to send the echo requests and [`Dns.GetHostEntry` method](https://docs.microsoft.com/en-us/dotnet/api/system.net.dns.gethostentry?view=net-6.0) for IP to hostname DNS resolution.
 - [__Network-TCPScanner__](https://github.com/santysq/Network-IPScanner/blob/main/Network-TCPScanner.ps1): Sends TCP connection requests in parallel. `Test-Port` function uses [`System.Net.Sockets.TCPClient`](https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient?view=net-6.0) and it's [`.ConnectAsync(...)` Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.connectasync?view=net-6.0#system-net-sockets-tcpclient-connectasync(system-net-ipaddress-system-int32)) to send the TCP connection requests.
