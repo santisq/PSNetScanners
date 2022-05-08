@@ -62,4 +62,4 @@ function Test-TCPConnectionAsync {
     }
 }
 
-'google.com' + 'cisco.com' + 'amazon.com' | Test-TCPConnectionAsync 80, 443, 8080, 389, 636
+'google.com', 'cisco.com', 'amazon.com' | Test-TCPConnectionAsync 80, 443, 8080, 389, 636
