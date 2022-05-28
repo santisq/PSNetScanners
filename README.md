@@ -3,10 +3,12 @@
 ## DESCRIPTION
 Two PowerShell scripts designed to scan Network IP Ranges or hostnames using [`Runspace`](https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.runspaces.runspace?view=powershellsdk-7.0.0) for faster execution. And two standalone functions using async techniques for ICMP and TCP scanning.
 
-- [__`Network-IPScanner`__](https://github.com/santysq/Network-IPScanner/blob/main/Network-IPScanner.ps1) - Sends ICMP echo requests using the [__Ping Class__](https://docs.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping?view=net-6.0) and the [__Dns Class__](https://docs.microsoft.com/en-us/dotnet/api/system.net.dns?view=net-6.0) for DNS resolution in parallel with _Runspaces_.
-- [__`Network-TCPScanner`__](https://github.com/santysq/Network-IPScanner/blob/main/Network-TCPScanner.ps1) - Sends TCP connection requests using the [__TcpClient Class__](https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient?view=net-6.0) in parallel with _Runspaces_.
-- [__`Test-ICMPConnectionAsync`__](https://github.com/santysq/PowerShell-Network-Scanners/blob/main/Test-ICMPConnectionAsync.ps1) - Standalone function, uses [`SendPingAsync(...)` Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping.sendpingasync?view=net-6.0) for the async echo requests and [`GetHostEntryAsync(...)` Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.dns.gethostentryasync?view=net-6.0#system-net-dns-gethostentryasync(system-net-ipaddress)) for async DNS resolutions.
-- [__`Network-TCPConnectionAsync`__](https://github.com/santysq/PowerShell-Network-Scanners/blob/main/Network-TCPScanner.ps1) - Standalone function, uses [`ConnectAsync(...)` Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.connectasync?view=net-6.0#system-net-sockets-tcpclient-connectasync(system-net-ipaddress-system-int32)) to send the async TCP connection requests.
+| Name | Description |
+| --- | --- |
+| [__`Network-IPScanner`__](https://github.com/santysq/Network-IPScanner/blob/main/Network-IPScanner.ps1) | Sends ICMP echo requests using the [__Ping Class__](https://docs.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping?view=net-6.0) and the [__Dns Class__](https://docs.microsoft.com/en-us/dotnet/api/system.net.dns?view=net-6.0) for DNS resolution in parallel with _Runspaces_. |
+| [__`Network-TCPScanner`__](https://github.com/santysq/Network-IPScanner/blob/main/Network-TCPScanner.ps1) | Sends TCP connection requests using the [__TcpClient Class__](https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient?view=net-6.0) in parallel with _Runspaces_. |
+| [__`Test-ICMPConnectionAsync`__](https://github.com/santysq/PowerShell-Network-Scanners/blob/main/Test-ICMPConnectionAsync.ps1) | Standalone function, uses [`SendPingAsync(...)` Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping.sendpingasync?view=net-6.0) for the async echo requests and [`GetHostEntryAsync(...)` Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.dns.gethostentryasync?view=net-6.0#system-net-dns-gethostentryasync(system-net-ipaddress)) for async DNS resolutions. |
+| [__`Network-TCPConnectionAsync`__](https://github.com/santysq/PowerShell-Network-Scanners/blob/main/Network-TCPScanner.ps1) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; | Standalone function, uses [`ConnectAsync(...)` Method](https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.connectasync?view=net-6.0#system-net-sockets-tcpclient-connectasync(system-net-ipaddress-system-int32)) to send the async TCP connection requests. |
 
 ## OUTPUT
 
@@ -14,7 +16,7 @@ Two PowerShell scripts designed to scan Network IP Ranges or hostnames using [`R
 
 - __```System.Management.Automation.PSCustomObject```__
 
-```
+```powershell
 Name        TypeNameOfValue
 ----        ---------------
 Ping        System.Int32
@@ -29,7 +31,7 @@ Status      System.Net.NetworkInformation.IPStatus
 
 - __```System.Management.Automation.PSCustomObject```__
 
-```
+```powershell
 Name         TypeNameOfValue
 ----         ---------------
 Source       System.String
@@ -46,7 +48,7 @@ Success      System.Boolean
 
 Below are the measurements scanning a 254 IP range with `Test-ICMPConnection` default script parameters:
 
-```
+```powershell
 Days              : 0
 Hours             : 0
 Minutes           : 0
@@ -64,7 +66,7 @@ TotalMilliseconds : 4600.7194
 
 ### Network-IPScanner:
 
-```
+```powershell
 Ping Source Address       Destination Latency   Status
 ---- ------ -------       ----------- -------   ------
    1 moon   192.168.1.1   _gateway    3 ms     Success
@@ -80,7 +82,7 @@ Ping Source Address       Destination Latency   Status
 
 ### Network-TCPScanner:
 
-```
+```powershell
 Source          Destionation Port Success
 ------          ------------ ---- -------
 myHostName      google.com     80    True
