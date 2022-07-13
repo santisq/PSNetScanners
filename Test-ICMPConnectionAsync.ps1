@@ -11,21 +11,24 @@ function Test-ICMPConnectionAsync {
         [string[]] $Address,
 
         [parameter(Position = 1)]
-        [int] $TimeOut = 1000,
+        [ValidateRange(1, [int]::MaxValue)]
+        [int] $TimeOut = 10, # In seconds!
 
         [parameter(Position = 2)]
+        [ValidateRange(1, [int]::MaxValue)]
         [int] $BufferSize = 32
     )
 
     begin {
-        $tasks = [List[OrderedDictionary]]::new()
-        $data  = [byte[]]::new($BufferSize)
+        $tasks   = [List[OrderedDictionary]]::new()
+        $data    = [byte[]]::new($BufferSize)
+        $options = [PingOptions]::new()
+        $TimeOut = [timespan]::FromSeconds($TimeOut).TotalMilliseconds
+        $options.DontFragment = $true
     }
     process {
         foreach($addr in $Address) {
-            $ping     = [Ping]::new()
-            $options  = [PingOptions]::new()
-            $options.DontFragment = $true
+            $ping = [Ping]::new()
             $tasks.Add([ordered]@{
                 Target   = $addr
                 Instance = $ping
@@ -67,3 +70,5 @@ function Test-ICMPConnectionAsync {
         }
     }
 }
+
+'amazon.com', 'google.com', 'facebook.com' | Test-ICMPConnectionAsync | Format-Table
