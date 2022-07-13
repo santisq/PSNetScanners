@@ -41,9 +41,12 @@ function Test-ICMPConnectionAsync {
             $instance.ForEach('Dispose')
             $response = $ping.GetAwaiter().GetResult()
 
-            $latency = (
-                '*', [string]::Format('{0} ms', $response.RoundtripTime)
-            )[$response.Status -eq 'Success']
+            if($response.Status -eq 'Success') {
+                $latency = [string]::Format('{0} ms', $response.RoundtripTime)
+            }
+            else {
+                $latency = '*'
+            }
 
             if($dns.Status -eq 'RanToCompletion') {
                 $dnsresol = $dns.GetAwaiter().GetResult().HostName
@@ -62,5 +65,3 @@ function Test-ICMPConnectionAsync {
         }
     }
 }
-
-1..254 | ForEach-Object { "192.168.0.$_" } | Test-ICMPConnectionAsync | Format-Table
