@@ -51,7 +51,9 @@ function Test-ICMPConnectionAsync {
             if($dns.Status -eq 'RanToCompletion') {
                 $dnsresol = $dns.GetAwaiter().GetResult().HostName
             }
-            else { $dnsresol = '*' }
+            else {
+                $dnsresol = '*'
+            }
 
             [pscustomobject]@{
                 Source     = $env:COMPUTERNAME
