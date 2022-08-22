@@ -44,7 +44,7 @@ function Test-TCPConnectionAsync {
         [int[]] $Port,
 
         [parameter(Position = 2)]
-        [ValidateRange(1000, [int]::MaxValue)]
+        [ValidateRange(5, [int]::MaxValue)]
         [int] $TimeOut = 5 # In seconds!
     )
 
