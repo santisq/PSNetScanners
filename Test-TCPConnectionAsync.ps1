@@ -4,7 +4,6 @@ using namespace System.Collections.Specialized
 using namespace System.Net.Sockets
 using namespace System.Threading.Tasks
 
-
 <#
 .DESCRIPTION
 PowerShell Function that leverages the ConnectAsync(...) Method from the TcpClient Class to send the async TCP connection requests.
