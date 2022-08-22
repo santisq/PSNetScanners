@@ -4,25 +4,53 @@ using namespace System.Collections.Specialized
 using namespace System.Net.Sockets
 using namespace System.Threading.Tasks
 
+
+<#
+.DESCRIPTION
+PowerShell Function that leverages the ConnectAsync(...) Method from the TcpClient Class to send the async TCP connection requests.
+
+.EXAMPLE
+'google.com', 'cisco.com', 'amazon.com' | Test-TCPConnectionAsync 80, 443, 8080, 389, 636
+
+.EXAMPLE
+@'
+Target,Port
+google.com,80
+google.com,443
+google.com,8080
+google.com,389
+google.com,636
+cisco.com,80
+cisco.com,443
+cisco.com,8080
+cisco.com,389
+cisco.com,636
+amazon.com,80
+amazon.com,443
+amazon.com,8080
+amazon.com,389
+amazon.com,636
+'@ | ConvertFrom-Csv | Test-TCPConnectionAsync
+#>
 function Test-TCPConnectionAsync {
     [cmdletbinding()]
     param(
-        [parameter(Mandatory, Valuefrompipeline)]
+        [parameter(Mandatory, Valuefrompipeline, ValueFromPipelineByPropertyName)]
         [string[]] $Target,
 
-        [parameter(Mandatory, Position = 1)]
+        [parameter(Mandatory, Position = 1, ValueFromPipelineByPropertyName)]
         [ValidateRange(1, 65535)]
         [int[]] $Port,
 
-        # 1 second minimum, reasonable for TCP connection
         [parameter(Position = 2)]
         [ValidateRange(1000, [int]::MaxValue)]
-        [int] $TimeOut = 1200
+        [int] $TimeOut = 5 # In seconds!
     )
 
     begin {
-        $timer = [Stopwatch]::StartNew()
-        $tasks = [List[OrderedDictionary]]::new()
+        $timer   = [Stopwatch]::StartNew()
+        $tasks   = [List[OrderedDictionary]]::new()
+        $TimeOut = [timespan]::FromSeconds($TimeOut).TotalMilliseconds
     }
     process {
         foreach($t in $Target) {
@@ -61,5 +89,3 @@ function Test-TCPConnectionAsync {
         }
     }
 }
-
-'google.com', 'cisco.com', 'amazon.com' | Test-TCPConnectionAsync 80, 443, 8080, 389, 636
