@@ -1,6 +1,5 @@
 using namespace System.Diagnostics
 using namespace System.Collections.Generic
-using namespace System.Collections.Specialized
 using namespace System.Net.Sockets
 using namespace System.Threading.Tasks
 
@@ -39,30 +38,39 @@ function Test-TCPConnectionAsync {
         [alias('ComputerName', 'HostName', 'Host')]
         [string[]] $Target,
 
-        [parameter(Mandatory, Position = 1, ValueFromPipelineByPropertyName)]
+        [parameter(Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateRange(1, 65535)]
         [int[]] $Port,
 
-        [parameter(Position = 2)]
+        [parameter()]
         [ValidateRange(5, [int]::MaxValue)]
-        [int] $TimeOut = 5 # In seconds!
+        [int] $TimeOut = 5, # In seconds!
+
+        [parameter()]
+        [switch] $IPv6
     )
 
     begin {
         $timer   = [Stopwatch]::StartNew()
-        $tasks   = [List[OrderedDictionary]]::new()
+        $queue   = [List[hashtable]]::new()
         $TimeOut = [timespan]::FromSeconds($TimeOut).TotalMilliseconds
+        if($IPv6.IsPresent) {
+            $newTcp = { [TCPClient]::new([AddressFamily]::InterNetworkV6) }
+            return
+
+        }
+        $newTcp = { [TCPClient]::new() }
     }
     process {
-        foreach($t in $Target) {
+        foreach($item in $Target) {
             foreach($i in $Port) {
-                $tcp = [TCPClient]::new()
-                $tasks.Add([ordered]@{
+                $tcp = & $newTcp
+                $queue.Add(@{
                     Instance = $tcp
-                    Task     = $tcp.ConnectAsync($t, $i)
+                    Task     = $tcp.ConnectAsync($item, $i)
                     Output   = [ordered]@{
                         Source       = $env:COMPUTERNAME
-                        Destionation = $t
+                        Destionation = $item
                         Port         = $i
                     }
                 })
@@ -70,23 +78,37 @@ function Test-TCPConnectionAsync {
         }
     }
     end {
-        do {
-            $id = [Task]::WaitAny($tasks.Task, 200)
-            if($id -eq -1) {
-                continue
+        while($queue -and $timer.ElapsedMilliseconds -le $timeout) {
+            try {
+                $id = [Task]::WaitAny($queue.Task, 200)
+                if($id -eq -1) {
+                    continue
+                }
+                $instance, $task, $output = $queue[$id]['Instance', 'Task', 'Output']
+                if($instance) {
+                    $instance.Dispose()
+                }
+                $output['Success'] = $task.Status -eq [TaskStatus]::RanToCompletion
+                $queue.RemoveAt($id)
+                [pscustomobject] $output
             }
-            $instance, $task, $output = $tasks[$id][$tasks[$id].PSBase.Keys]
-            $output['Success'] = $task.Status -eq [TaskStatus]::RanToCompletion
-            $instance.ForEach('Dispose') # Avoid any throws here
-            $tasks.RemoveAt($id)
-            [pscustomobject] $output
-        } while($tasks -and $timer.ElapsedMilliseconds -le $timeout)
+            catch {
+                $PSCmdlet.WriteError($_)
+            }
+        }
 
-        foreach($t in $tasks) {
-            $instance, $task, $output = $t[$t.PSBase.Keys]
-            $output['Success'] = $task.Status -eq [TaskStatus]::RanToCompletion
-            $instance.ForEach('Dispose') # Avoid any throws here
-            [pscustomobject] $output
+        foreach($item in $queue) {
+            try {
+                $instance, $task, $output = $item['Instance', 'Task', 'Output']
+                $output['Success'] = $task.Status -eq [TaskStatus]::RanToCompletion
+                if($instance) {
+                    $instance.Dispose()
+                }
+                [pscustomobject] $output
+            }
+            catch {
+                $PSCmdlet.WriteError($_)
+            }
         }
     }
 }
