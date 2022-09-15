@@ -1,7 +1,7 @@
 # PowerShell Network Scanners
 
 ## DESCRIPTION
-Two PowerShell scripts designed to scan Network IP Ranges or hostnames using [`Runspace`](https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.runspaces.runspace?view=powershellsdk-7.0.0) for faster execution. And two standalone functions using async techniques for ICMP and TCP scanning.
+Two PowerShell scripts designed to scan Network IP Ranges or hostname using [`Runspace`](https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.runspaces.runspace?view=powershellsdk-7.0.0) for faster execution. And two standalone functions using async techniques for ICMP and TCP scanning.
 
 | Name | Description |
 | --- | --- |
@@ -35,7 +35,7 @@ Status      System.Net.NetworkInformation.IPStatus
 Name         TypeNameOfValue
 ----         ---------------
 Source       System.String
-Destionation System.String
+Destination  System.String
 Port         System.Int32
 Success      System.Boolean
 ```
@@ -83,7 +83,7 @@ Ping Source Address       Destination Latency   Status
 ### Network-TCPScanner:
 
 ```powershell
-Source          Destionation Port Success
+Source          Destination  Port Success
 ------          ------------ ---- -------
 myHostName      google.com     80    True
 myHostName      google.com    443    True

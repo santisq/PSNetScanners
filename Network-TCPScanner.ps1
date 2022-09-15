@@ -35,7 +35,7 @@ function Test-TCPConnectionAsync {
                     Task     = $tcp.ConnectAsync($t, $i)
                     Output   = [ordered]@{
                         Source       = $env:COMPUTERNAME
-                        Destionation = $t
+                        Destination  = $t
                         Port         = $i
                     }
                 })

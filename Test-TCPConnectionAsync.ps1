@@ -70,7 +70,7 @@ function Test-TCPConnectionAsync {
                     Task     = $tcp.ConnectAsync($item, $i)
                     Output   = [ordered]@{
                         Source       = $env:COMPUTERNAME
-                        Destionation = $item
+                        Destination  = $item
                         Port         = $i
                     }
                 })
