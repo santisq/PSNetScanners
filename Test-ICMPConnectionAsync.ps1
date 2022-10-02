@@ -2,7 +2,7 @@ using namespace System.Threading.Tasks
 using namespace System.Collections.Generic
 using namespace System.Net.NetworkInformation
 using namespace System.Net
-using namespace System.Collections.Specialized
+using namespace System.Diagnostics
 
 function Test-ICMPConnectionAsync {
     [cmdletbinding()]
@@ -20,16 +20,28 @@ function Test-ICMPConnectionAsync {
     )
 
     begin {
-        $tasks   = [List[OrderedDictionary]]::new()
-        $data    = [byte[]]::new($BufferSize)
+        $tasks   = [List[hashtable]]::new()
+        $timer   = [Stopwatch]::StartNew()
+        $data    = [byte[]] [char[]] 'A' * $BufferSize
         $options = [PingOptions]::new()
         $TimeOut = [timespan]::FromSeconds($TimeOut).TotalMilliseconds
         $options.DontFragment = $true
+
+        $outObject = {
+            [pscustomobject]@{
+                Source     = $env:COMPUTERNAME
+                Target     = $target
+                Address    = $response.Address.IPAddressToString
+                DnsName    = $dnsresol
+                Latency    = $latency
+                Status     = $response.Status
+            }
+        }
     }
     process {
         foreach($addr in $Address) {
             $ping = [Ping]::new()
-            $tasks.Add([ordered]@{
+            $tasks.Add(@{
                 Target   = $addr
                 Instance = $ping
                 PingTask = $ping.SendPingAsync($addr, $TimeOut, $data, $options)
@@ -38,37 +50,69 @@ function Test-ICMPConnectionAsync {
         }
     }
     end {
-        $null = [Task]::WaitAll($tasks.PingTask)
-        foreach($task in $tasks) {
-            $target, $instance, $ping, $dns = $task[$task.PSBase.Keys]
-            $instance.ForEach('Dispose')
-            $response = $ping.GetAwaiter().GetResult()
-
-            if($response.Status -eq 'Success') {
-                $latency = [string]::Format('{0} ms', $response.RoundtripTime)
+        while($tasks -and $timer.ElapsedMilliseconds -le $timeout) {
+            $id = [Task]::WaitAny($tasks.PingTask, 200)
+            if($id -eq -1) {
+                continue
             }
-            else {
-                $latency = '*'
+            $target, $instance, $ping, $dns = $tasks[$id]['Target', 'Instance', 'PingTask', 'DnsTask']
+
+            try {
+                $response = $ping.GetAwaiter().GetResult()
+                $latency  = [string]::Format('{0} ms', $response.RoundtripTime)
+                $ping.Dispose()
+            }
+            catch {
+                $latency  = '*'
+                $response = @{
+                    Address = @{ IPAddressToString = '*' }
+                    Status  = $_.Exception.InnerException.InnerException.Message
+                }
             }
 
-            if($dns.Status -eq 'RanToCompletion') {
+            try {
                 $dnsresol = $dns.GetAwaiter().GetResult().HostName
+                $dns.Dispose()
             }
-            else {
-                $dnsresol = '*'
+            catch {
+                $dnsresol = $_.Exception.InnerException.Message
             }
 
-            [pscustomobject]@{
-                Source     = $env:COMPUTERNAME
-                Target     = $target
-                Address    = $response.Address
-                DnsName    = $dnsresol
-                Latency    = $latency
-                BufferSize = $data.Length
-                Status     = $response.Status
+            & $outObject
+            $instance.Dispose()
+            $tasks.RemoveAt($id)
+        }
+
+        foreach($task in $tasks) {
+            $target, $instance, $ping, $dns = $task['Target', 'Instance', 'PingTask', 'DnsTask']
+
+            try {
+                $response = $ping.GetAwaiter().GetResult()
+                $latency  = [string]::Format('{0} ms', $response.RoundtripTime)
+                $ping.Dispose()
             }
+            catch {
+                $latency  = '*'
+                $response = @{
+                    Address = '*'
+                    Status  = $_.Exception.InnerException.InnerException.Message
+                }
+            }
+
+            try {
+                $dnsresol = $dns.GetAwaiter().GetResult().HostName
+                $dns.Dispose()
+            }
+            catch {
+                $dnsresol = $_.Exception.InnerException.Message
+            }
+
+            & $outObject
+            $instance.Dispose()
         }
     }
 }
 
-'amazon.com', 'google.com', 'facebook.com' | Test-ICMPConnectionAsync | Format-Table
+'amazon.com', 'google.com', 'facebook.com' |
+    Test-ICMPConnectionAsync -TimeOut 5 |
+    Format-Table -AutoSize

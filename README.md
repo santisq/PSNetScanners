@@ -12,7 +12,7 @@ Two PowerShell scripts designed to scan Network IP Ranges or hostname using [`Ru
 
 ## OUTPUT
 
-### Network-IPScanner:
+### Network-IPScanner
 
 - __```System.Management.Automation.PSCustomObject```__
 
@@ -27,7 +27,7 @@ Latency     System.String
 Status      System.Net.NetworkInformation.IPStatus
 ```
 
-### Network-TCPScanner:
+### Network-TCPScanner
 
 - __```System.Management.Automation.PSCustomObject```__
 
@@ -41,8 +41,8 @@ Success      System.Boolean
 ```
 
 ## REQUIREMENTS
-- Requires __.NET Framework 4.5+__ if running __Windows PowerShell__ / __.NET Core 1.0+__ if running __PowerShell Core__.
 
+- Requires __.NET Framework 4.5+__ if running __Windows PowerShell__ / __.NET Core 1.0+__ if running __PowerShell Core__.
 
 ## MEASUREMENTS
 
@@ -64,7 +64,7 @@ TotalMilliseconds : 4600.7194
 
 ## SAMPLE OUTPUT
 
-### Network-IPScanner:
+### Network-IPScanner
 
 ```powershell
 Ping Source Address       Destination Latency   Status
@@ -80,7 +80,7 @@ Ping Source Address       Destination Latency   Status
    1 moon   192.168.1.9   *           *       TimedOut
 ```
 
-### Network-TCPScanner:
+### Network-TCPScanner
 
 ```powershell
 Source          Destination  Port Success
