@@ -35,7 +35,7 @@ function Test-TCPConnectionAsync {
     [cmdletbinding()]
     param(
         [parameter(Mandatory, Valuefrompipeline, ValueFromPipelineByPropertyName)]
-        [alias('ComputerName', 'HostName', 'Host')]
+        [alias('ComputerName', 'HostName', 'Host', 'Server')]
         [string[]] $Target,
 
         [parameter(Mandatory, ValueFromPipelineByPropertyName)]
