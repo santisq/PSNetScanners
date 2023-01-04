@@ -57,7 +57,6 @@ function Test-TCPConnectionAsync {
         if($IPv6.IsPresent) {
             $newTcp = { [TCPClient]::new([AddressFamily]::InterNetworkV6) }
             return
-
         }
         $newTcp = { [TCPClient]::new() }
     }
