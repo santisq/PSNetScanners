@@ -1,54 +1,74 @@
-﻿// using System;
-// using System.Collections.Generic;
-// using System.Net;
-// using System.Net.NetworkInformation;
-// using System.Threading;
-// using System.Threading.Tasks;
+﻿using System.Net;
+using System.Net.NetworkInformation;
+using System.Threading.Tasks;
 
-// namespace PSNetScanners;
+namespace PSNetScanners;
 
-// public sealed class PingAsync
-// {
-//     private readonly Ping _ping;
+public sealed class PingResult
+{
+    private string? _displayAddress;
 
-//     private readonly PingOptions _options;
+    private IPAddress? _address;
 
-//     private readonly int _timeOut;
+    public string Source { get; }
 
-//     private readonly byte[] _buffer;
+    public string Destination { get; }
 
-//     private readonly string _target;
+    public IPAddress? Address
+    {
+        get => _address ??= Status is IPStatus.Success ? Reply?.Address : null;
+    }
 
-//     internal PingAsync(
-//         PingOptions options,
-//         string target,
-//         int timeOut,
-//         byte[] buffer)
-//     {
-//         _ping = new Ping();
-//         _options = options;
-//         _target = target;
-//         _timeOut = timeOut;
-//         _buffer = buffer;
-//     }
+    public string DisplayAddress
+    {
+        get => _displayAddress ??= Address?.ToString() ?? "*";
+    }
 
-//     internal Task Run() => Task.Run(async () =>
-//     {
+    public long? Latency { get => Reply?.RoundtripTime; }
 
-//         CancellationTokenSource source = new();
-//         Task myCancellationTask = Task.Run(async () =>
-//         {
-//             while (true)
-//             {
-//                 source.Token.ThrowIfCancellationRequested();
-//                 await Task.Delay(200);
-//             }
-//         });
-//         Task<IPHostEntry> entryTask = Dns.GetHostEntryAsync(_target);
+    public IPStatus Status { get => Reply?.Status ?? IPStatus.TimedOut; }
 
-//         await Task.WhenAny(myCancellationTask, entryTask);
+    public DnsResult? DnsResult { get; private set; }
 
-//         Task<PingReply> pingTask = _ping.SendPingAsync(_target, _timeOut, _buffer, _options);
-//         Task done = await Task.WhenAny(dnsTask, pingTask);
-//     });
-// }
+    public PingReply? Reply { get; private set; }
+
+    private PingResult(string source, string target)
+    {
+        Source = source;
+        Destination = target;
+    }
+
+    public static async Task<PingResult> CreateAsync(
+        string source,
+        string target,
+        Cancellation cancellation)
+    {
+        return new PingResult(source, target)
+        {
+            Reply = await PingAsync(target, cancellation),
+            DnsResult = await DnsAsync.GetHostEntryAsync(target, cancellation)
+        };
+    }
+
+    private static async Task<PingReply?> PingAsync(
+        string target,
+        Cancellation cancellation)
+    {
+        if (cancellation.IsCancellationRequested)
+        {
+            return null;
+        }
+
+        using Ping ping = new();
+        Task<PingReply> pingTask = ping.SendPingAsync(target);
+        Task task = await Task.WhenAny(pingTask, cancellation.Task);
+
+        if (task == cancellation.Task)
+        {
+            return null;
+        }
+
+        PingReply reply = await pingTask;
+        return reply;
+    }
+}

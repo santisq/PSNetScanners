@@ -30,5 +30,27 @@
     "powershell.pester.useLegacyCodeLens": false,
     "cSpell.words": [
         "pwsh"
-    ]
+    ],
+    "xml.fileAssociations": [
+        {
+            "systemId": "https://raw.githubusercontent.com/PowerShell/PowerShell/master/src/Schemas/Format.xsd",
+            "pattern": "**/*.Format.ps1xml"
+        },
+        {
+            "systemId": "https://raw.githubusercontent.com/PowerShell/PowerShell/master/src/Schemas/Types.xsd",
+            "pattern": "**/*.Types.ps1xml"
+        }
+    ],
+    "[powershell]": {
+        "files.encoding": "utf8bom",
+        "editor.tabSize": 4,
+        "editor.detectIndentation": false,
+        "editor.autoIndent": "full"
+    },
+    "[csharp]": {
+        "editor.maxTokenizationLineLength": 2500,
+        "editor.tabSize": 4,
+        "editor.detectIndentation": false,
+        "editor.autoIndent": "full",
+    }
 }

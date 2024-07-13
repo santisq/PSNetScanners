@@ -4,25 +4,26 @@ using System.Threading.Tasks;
 
 namespace PSNetScanners;
 
-internal sealed class Cancellation : IDisposable
+public sealed class Cancellation : IDisposable
 {
     private readonly CancellationTokenSource _cts;
 
+    internal bool IsCancellationRequested { get => _cts.IsCancellationRequested; }
+
     internal Task Task { get; }
 
-    internal Cancellation(int timeout)
+    public Cancellation(int? timeout)
     {
-        _cts = new CancellationTokenSource(timeout);
+        _cts = new CancellationTokenSource(timeout ?? -1);
         Task = Task.Delay(Timeout.Infinite, _cts.Token);
     }
 
-    internal void Cancel() => _cts.Cancel();
+    public void Cancel() => _cts.Cancel();
 
     internal CancellationTokenRegistration Register(Action action) =>
         _cts.Token.Register(action);
 
-    public void Dispose()
-    {
-        _cts.Dispose();
-    }
+    internal void ThrowIfCancellationRequested() => _cts.Token.ThrowIfCancellationRequested();
+
+    public void Dispose() => _cts.Dispose();
 }

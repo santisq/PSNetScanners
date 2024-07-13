@@ -9,8 +9,10 @@ task Clean {
 }
 
 task BuildDocs {
-    $helpParams = $ProjectInfo.Documentation.GetParams()
-    $null = New-ExternalHelp @helpParams
+    if (Test-Path $ProjectInfo.Documentation.Source) {
+        $helpParams = $ProjectInfo.Documentation.GetParams()
+        $null = New-ExternalHelp @helpParams
+    }
 }
 
 task BuildManaged {
