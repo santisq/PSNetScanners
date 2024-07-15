@@ -14,15 +14,13 @@ internal sealed class Cancellation : IDisposable
 
     internal Task Task { get; }
 
-    internal Cancellation(int timeout)
+    internal Cancellation()
     {
-        _cts = new CancellationTokenSource(timeout > 0 ? timeout * 1000 : -1);
+        _cts = new CancellationTokenSource();
         Task = Task.Delay(Timeout.Infinite, _cts.Token);
     }
 
     internal void Cancel() => _cts.Cancel();
-
-    internal void ThrowIfCancellationRequested() => _cts.Token.ThrowIfCancellationRequested();
 
     public void Dispose() => _cts.Dispose();
 }

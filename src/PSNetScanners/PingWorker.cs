@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Management.Automation;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,17 +24,17 @@ internal sealed class PingWorker : IDisposable
 
     private readonly Cancellation _cancellation;
 
-    internal PingWorker(
-        int bufferSize,
-        TimeSpan? pingTimeout,
-        int timeoutSeconds)
+    private readonly int _throttle;
+
+    internal PingWorker(int bufferSize, int? taskTimeout, int throttle)
     {
-        _cancellation = new Cancellation(timeoutSeconds);
+        _cancellation = new Cancellation();
+        _throttle = throttle;
         _options = new TaskOptions
         {
             Buffer = Encoding.ASCII.GetBytes(new string('A', bufferSize)),
-            Timeout = pingTimeout ?? TimeSpan.FromMilliseconds(500),
-            Cancellation = _cancellation
+            Cancellation = _cancellation,
+            TaskTimeout = taskTimeout ?? 4000
         };
 
         _worker = Task.Run(Start, Token);
@@ -49,7 +50,7 @@ internal sealed class PingWorker : IDisposable
 
     internal IEnumerable<Output> GetOutput() => _outputQueue.GetConsumingEnumerable(Token);
 
-    internal void ThrowIfCancellationRequested() => _cancellation.ThrowIfCancellationRequested();
+    internal bool TryTake(out Output result) => _outputQueue.TryTake(out result, 0, Token);
 
     private async Task Start()
     {
@@ -62,12 +63,24 @@ internal sealed class PingWorker : IDisposable
             {
                 tasks.Add(PingResult.CreateAsync(
                     source: source,
-                    target: host,
-                    pingOptions: _options));
+                    destination: host,
+                    options: _options));
+
+                if (tasks.Count == _throttle)
+                {
+                    await ProcessOne(tasks);
+                }
             }
         }
 
         while (tasks.Count > 0)
+        {
+            await ProcessOne(tasks);
+        }
+
+        _outputQueue.CompleteAdding();
+
+        async Task ProcessOne(List<Task<PingResult>> tasks)
         {
             Task<PingResult> task = await Task.WhenAny(tasks);
             tasks.Remove(task);
@@ -77,18 +90,17 @@ internal sealed class PingWorker : IDisposable
                 PingResult result = await task;
                 _outputQueue.Add(Output.CreateSuccess(result), Token);
             }
-            catch (OperationCanceledException)
+            catch (PingException exception)
             {
-                throw;
+                ErrorRecord error = exception.InnerException.CreateProcessing(task);
+                _outputQueue.Add(Output.CreateError(error), Token);
             }
             catch (Exception exception)
             {
-                ErrorRecord error = exception.CreateProcessing(this);
+                ErrorRecord error = exception.CreateProcessing(task);
                 _outputQueue.Add(Output.CreateError(error), Token);
             }
         }
-
-        _outputQueue.CompleteAdding();
     }
 
     public void Dispose()

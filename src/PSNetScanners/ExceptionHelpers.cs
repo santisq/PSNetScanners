@@ -18,18 +18,4 @@ internal static class ExceptionHelpers
     internal static void WriteUnspecifiedError(this Exception exception, PSCmdlet cmdlet) =>
         cmdlet.WriteError(new ErrorRecord(
             exception, "UnspecifiedCmdletError", ErrorCategory.NotSpecified, cmdlet));
-
-    internal static void ValidateTimeout(this TimeSpan? timeSpan, PSCmdlet cmdlet)
-    {
-        if (timeSpan <= TimeSpan.Zero)
-        {
-            ErrorRecord error = new(
-                new ArgumentOutOfRangeException("TaskTimeout must be a TimeSpan above 0."),
-                "InvalidTimeout",
-                ErrorCategory.InvalidArgument,
-                cmdlet);
-
-            cmdlet.ThrowTerminatingError(error);
-        }
-    }
 }

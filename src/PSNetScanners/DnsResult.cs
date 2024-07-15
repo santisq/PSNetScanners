@@ -7,7 +7,6 @@ public enum DnsStatus
 {
     Success,
     Timeout,
-    Cancelled,
     Error
 }
 
@@ -36,13 +35,16 @@ public sealed class DnsSuccess : DnsResult
 
 public class DnsFailure : DnsResult
 {
-    public Exception? Exception { get; }
+    public Exception Exception { get; }
 
-    internal DnsFailure(DnsStatus status, Exception? error = null)
+    internal DnsFailure(DnsStatus status, Exception exception)
         : base(status)
     {
-        Exception = error;
+        Exception = exception;
     }
 
-    public override string ToString() => Exception?.Message ?? Status.ToString();
+    internal static DnsFailure CreateTimeout() =>
+        new(DnsStatus.Timeout, new TimeoutException());
+
+    public override string ToString() => Exception.Message;
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Management.Automation;
 using System.Threading.Tasks;
 
@@ -6,13 +5,9 @@ namespace PSNetScanners;
 
 internal record struct TaskOptions(
     Cancellation Cancellation,
-    TimeSpan Timeout,
+    int TaskTimeout,
     byte[] Buffer)
 {
-    internal readonly int TaskTimeout { get => Timeout.Milliseconds; }
-
-    internal readonly Task GetTimeoutDelay() => Task.Delay(Timeout);
-
     internal readonly Task CancelTask { get => Cancellation.Task; }
 }
 
