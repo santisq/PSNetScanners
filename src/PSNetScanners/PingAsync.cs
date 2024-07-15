@@ -38,32 +38,37 @@ public sealed class PingResult
         Destination = target;
     }
 
-    public static async Task<PingResult> CreateAsync(
+    internal static async Task<PingResult> CreateAsync(
         string source,
         string target,
-        Cancellation cancellation)
+        TaskOptions pingOptions)
     {
         return new PingResult(source, target)
         {
-            Reply = await PingAsync(target, cancellation),
-            DnsResult = await DnsAsync.GetHostEntryAsync(target, cancellation)
+            Reply = await PingAsync(target, pingOptions),
+            DnsResult = await DnsAsync.GetHostEntryAsync(target, pingOptions)
         };
     }
 
     private static async Task<PingReply?> PingAsync(
         string target,
-        Cancellation cancellation)
+        TaskOptions pingOptions)
     {
-        if (cancellation.IsCancellationRequested)
+        if (pingOptions.Cancellation.IsCancellationRequested)
         {
             return null;
         }
 
         using Ping ping = new();
-        Task<PingReply> pingTask = ping.SendPingAsync(target);
-        Task task = await Task.WhenAny(pingTask, cancellation.Task);
 
-        if (task == cancellation.Task)
+        Task<PingReply> pingTask = ping.SendPingAsync(
+            hostNameOrAddress: target,
+            timeout: pingOptions.TaskTimeout,
+            buffer: pingOptions.Buffer);
+
+        Task task = await Task.WhenAny(pingTask, pingOptions.CancelTask);
+
+        if (task == pingOptions.CancelTask)
         {
             return null;
         }

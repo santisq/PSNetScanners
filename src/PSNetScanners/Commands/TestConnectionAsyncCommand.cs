@@ -1,64 +1,107 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Management.Automation;
-using System.Net.NetworkInformation;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PSNetScanners;
 
 [Cmdlet(VerbsDiagnostic.Test, "ConnectionAsync")]
-public sealed class TestConnectionAsyncCommand : PSCmdlet
+public sealed class TestConnectionAsyncCommand : PSCmdlet, IDisposable
 {
-    private readonly List<Task> _tasks = new();
-
-    private byte[] _buffer = null!;
-
-    private int _taskCount;
-
-    private readonly PingOptions _pingOptions = new();
-
-    private readonly BlockingCollection<PingReply> _output = new();
-
     [Parameter(Mandatory = true, ValueFromPipeline = true, Position = 0)]
     public string[] Address { get; set; } = null!;
 
     [Parameter]
     [ValidateRange(1, int.MaxValue)]
+    public int TimeoutSeconds { get; set; }
+
+    [Parameter]
+    public TimeSpan? TaskTimeout { get; set; }
+
+    [Parameter]
+    [ValidateRange(1, 65500)]
     public int BufferSize { get; set; } = 32;
 
-    [Parameter]
-    [ValidateRange(1, int.MaxValue)]
-    public int TimeOutSeconds { get; set; } = 10;
-
-    [Parameter]
-    public SwitchParameter DontFragment { get; set; }
+    private PingWorker? _worker;
 
     protected override void BeginProcessing()
     {
-        _buffer = Enumerable.Repeat((byte)'A', BufferSize).ToArray();
-        _pingOptions.DontFragment = DontFragment.IsPresent;
+        TaskTimeout.ValidateTimeout(this);
+        _worker = new PingWorker(BufferSize, TaskTimeout, TimeoutSeconds);
     }
 
     protected override void ProcessRecord()
     {
-        foreach (string addr in Address)
+        if (_worker is null)
         {
-            Ping ping = new();
-            ping.SendPingAsync(
-                hostNameOrAddress: addr,
-                timeout: TimeOutSeconds * 1000,
-                buffer: _buffer,
-                options: _pingOptions);
-
-            ping.Disposed += (sender, e) => Interlocked.Decrement(ref _taskCount);
-
-            ping.PingCompleted += (sender, e) =>
-            {
-                _output.Add(e.Reply);
-                ((AutoResetEvent)e.UserState).Set();
-            };
+            return;
         }
+
+        try
+        {
+            foreach (string addr in Address)
+            {
+                _worker.Enqueue(addr);
+            }
+        }
+        catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
+        {
+            _worker.Cancel();
+            _worker.Wait();
+            throw;
+        }
+        catch (OperationCanceledException exception)
+        {
+            _worker.Wait();
+            exception.WriteTimeoutError(this);
+        }
+    }
+
+    protected override void EndProcessing()
+    {
+        if (_worker is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _worker.CompleteAdding();
+            foreach (Output data in _worker.GetOutput())
+            {
+                Process(data);
+            }
+        }
+        catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
+        {
+            _worker.Cancel();
+            _worker.Wait();
+            throw;
+        }
+        catch (OperationCanceledException exception)
+        {
+            _worker.Wait();
+            exception.WriteTimeoutError(this);
+        }
+    }
+
+    private void Process(Output output)
+    {
+        switch (output.Type)
+        {
+            case Type.Success:
+                WriteObject((PingResult)output.Data);
+                break;
+
+            case Type.Error:
+                WriteError((ErrorRecord)output.Data);
+                break;
+        }
+    }
+
+    protected override void StopProcessing() => _worker?.Cancel();
+
+    public void Dispose()
+    {
+        _worker?.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

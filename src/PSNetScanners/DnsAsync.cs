@@ -8,17 +8,18 @@ internal static class DnsAsync
 {
     internal static async Task<DnsResult> GetHostEntryAsync(
         string host,
-        Cancellation cancellation)
+        TaskOptions options)
     {
-        if (cancellation.IsCancellationRequested)
+        if (options.Cancellation.IsCancellationRequested)
         {
             return new DnsFailure(DnsStatus.Cancelled);
         }
 
         Task<IPHostEntry> taskEntry = Dns.GetHostEntryAsync(host);
-        Task task = await Task.WhenAny(taskEntry, cancellation.Task);
+        Task delayTask = options.GetTimeoutDelay();
+        Task task = await Task.WhenAny(taskEntry, options.CancelTask, delayTask);
 
-        if (task == cancellation.Task)
+        if (task == options.CancelTask || task == delayTask)
         {
             return new DnsFailure(DnsStatus.Timeout);
         }
