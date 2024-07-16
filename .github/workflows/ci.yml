@@ -1,4 +1,4 @@
-name: PSParallelPipeline Workflow
+name: PSNetScanners Workflow
 on:
   push:
     branches:

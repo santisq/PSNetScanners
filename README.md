@@ -1,4 +1,14 @@
-# PowerShell Network Scanners
+<h1 align="center">PSNetScanners</h1>
+<div align="center">
+<sub>PowerShell ICMP and TCP async scanners</sub>
+<br /><br />
+
+[![build](https://github.com/santisq/PSNetScanners/actions/workflows/ci.yml/badge.svg)](https://github.com/santisq/PSNetScanners/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/santisq/PSNetScanners/branch/main/graph/badge.svg?token=b51IOhpLfQ)](https://codecov.io/gh/santisq/PSNetScanners)
+[![PowerShell Gallery](https://img.shields.io/powershellgallery/v/PSNetScanners?label=gallery)](https://www.powershellgallery.com/packages/PSNetScanners)
+[![LICENSE](https://img.shields.io/github/license/santisq/PSNetScanners)](https://github.com/santisq/PSNetScanners/blob/main/LICENSE)
+
+</div>
 
 ## DESCRIPTION
 

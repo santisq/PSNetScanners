@@ -7,8 +7,6 @@ param (
     [String] $OutputFile
 )
 
-$ErrorActionPreference = 'Stop'
-
 Get-ChildItem ([IO.Path]::Combine($PSScriptRoot, 'Modules')) -Directory |
     Import-Module -Name { $_.FullName } -Force -DisableNameChecking
 

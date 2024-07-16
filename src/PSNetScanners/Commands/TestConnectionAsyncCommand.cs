@@ -15,7 +15,7 @@ public sealed class TestConnectionAsyncCommand : PSNetScannerCommandBase, IDispo
     [ValidateRange(1, 65500)]
     public int BufferSize { get; set; } = 32;
 
-    internal PingWorker? _worker;
+    private PingWorker? _worker;
 
     protected override void BeginProcessing()
     {
@@ -34,7 +34,7 @@ public sealed class TestConnectionAsyncCommand : PSNetScannerCommandBase, IDispo
 
         try
         {
-            foreach (string addr in Address)
+            foreach (string addr in Target)
             {
                 _worker.Enqueue(addr);
             }
