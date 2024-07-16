@@ -1,28 +1,47 @@
 ﻿using System;
 using System.Management.Automation;
+using System.Net.NetworkInformation;
+using System.Text;
 
 namespace PSNetScanners;
 
-[Cmdlet(VerbsDiagnostic.Test, "ConnectionAsync")]
+[Cmdlet(VerbsDiagnostic.Test, "PingAsync")]
 [OutputType(typeof(PingResult))]
-public sealed class TestConnectionAsyncCommand : PSNetScannerCommandBase, IDisposable
+public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
 {
     [Parameter]
     [ValidateRange(200, int.MaxValue)]
+    [Alias("ms")]
     public int? TaskTimeoutMilliseconds { get; set; }
 
     [Parameter]
     [ValidateRange(1, 65500)]
+    [Alias("bfs")]
     public int BufferSize { get; set; } = 32;
+
+    [Parameter]
+    public SwitchParameter ResolveDns { get; set; }
+
+    [Parameter]
+    public int Ttl { get; set; } = 128;
+
+    [Parameter]
+    public SwitchParameter DontFragment { get; set; }
 
     private PingWorker? _worker;
 
     protected override void BeginProcessing()
     {
-        _worker = new PingWorker(
-            BufferSize,
-            TaskTimeoutMilliseconds,
-            ThrottleLimit);
+        PingAsyncOptions options = new()
+        {
+            PingOptions = new PingOptions(Ttl, DontFragment.IsPresent),
+            Buffer = Encoding.ASCII.GetBytes(new string('A', BufferSize)),
+            TaskTimeout = TaskTimeoutMilliseconds ?? 4000,
+            ThrottleLimit = ThrottleLimit,
+            ResolveDns = ResolveDns.IsPresent
+        };
+
+        _worker = new PingWorker(options);
     }
 
     protected override void ProcessRecord()
@@ -73,6 +92,8 @@ public sealed class TestConnectionAsyncCommand : PSNetScannerCommandBase, IDispo
             throw;
         }
     }
+
+    protected override void StopProcessing() => _worker?.Cancel();
 
     public void Dispose()
     {

@@ -6,7 +6,7 @@ $manifestPath = [Path]::Combine($PSScriptRoot, '..', 'output', $moduleName)
 Import-Module $manifestPath
 Import-Module ([Path]::Combine($PSScriptRoot, 'common.psm1'))
 
-Describe TestConnectionAsyncCommand {
+Describe TestPingAsyncCommand {
     Context 'Output Streams' {
         It 'Success' {
             Test-ConnectionAsync -Target github.com |
@@ -32,7 +32,7 @@ Describe TestConnectionAsyncCommand {
             $result.DnsResult.Status | Should -Be ([PSNetScanners.DnsStatus]::Error)
         }
     }
-    Context 'TestConnectAsyncCommand' {
+    Context 'Test-PingAsync' {
         It 'Parallel Pings' {
             Measure-Command {
                 1..254 | ForEach-Object { "127.0.0.$_" } | Test-ConnectionAsync

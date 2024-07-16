@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
@@ -19,14 +20,14 @@ public sealed class PingResult
 
     public IPStatus Status { get; }
 
-    public DnsResult DnsResult { get; }
+    public DnsResult? DnsResult { get; }
 
     public PingReply? Reply { get; }
 
     private PingResult(
         string source,
         string destination,
-        DnsResult dns,
+        DnsResult? dns = null,
         PingReply? reply = null)
     {
         Source = source;
@@ -34,7 +35,7 @@ public sealed class PingResult
         DnsResult = dns;
         Reply = reply;
         Status = reply?.Status ?? IPStatus.TimedOut;
-        Address = Status is IPStatus.Success ? reply?.Address : IPAddress.None;
+        Address = Status is IPStatus.Success ? reply?.Address : null;
         Latency = reply?.RoundtripTime ?? 0;
         DisplayAddress = Address?.ToString() ?? "*";
     }
@@ -42,20 +43,27 @@ public sealed class PingResult
     internal static async Task<PingResult> CreateAsync(
         string source,
         string destination,
-        TaskOptions options)
+        PingAsyncOptions options,
+        Task cancelTask)
     {
         using Ping ping = new();
-        Task<IPHostEntry> dnsTask = Dns.GetHostEntryAsync(destination);
         Task<PingReply> pingTask = ping.SendPingAsync(
-            destination,
-            options.TaskTimeout,
-            options.Buffer);
+            hostNameOrAddress: destination,
+            timeout: options.TaskTimeout,
+            buffer: options.Buffer,
+            options: options.PingOptions);
 
-        Task result = options.TaskTimeout == 4000
-            ? await Task.WhenAny(options.CancelTask, dnsTask, pingTask)
-            : await Task.WhenAny(
-                options.CancelTask, dnsTask, pingTask,
-                Task.Delay(options.TaskTimeout));
+        if (!options.ResolveDns)
+        {
+            return new PingResult(
+                source: source,
+                destination: destination,
+                reply: await pingTask);
+        }
+
+        Task<IPHostEntry> dnsTask = Dns.GetHostEntryAsync(destination);
+        List<Task> tasks = [pingTask, cancelTask, dnsTask];
+        Task result = await WaitOneAsync(options, tasks);
 
         if (result != dnsTask && result != pingTask)
         {
@@ -65,21 +73,37 @@ public sealed class PingResult
                 dns: DnsFailure.CreateTimeout());
         }
 
-        DnsResult dnsResult;
-        try
-        {
-            IPHostEntry entry = await dnsTask;
-            dnsResult = new DnsSuccess(entry);
-        }
-        catch (Exception exception)
-        {
-            dnsResult = new DnsFailure(DnsStatus.Error, exception);
-        }
-
         return new PingResult(
             source: source,
             destination: destination,
-            dns: dnsResult,
+            dns: await GetDnsResult(dnsTask),
             reply: await pingTask);
+    }
+
+    private static async Task<Task> WaitOneAsync(
+        PingAsyncOptions options,
+        List<Task> tasks)
+    {
+        if (options.TaskTimeout == 4000)
+        {
+            return await Task.WhenAny(tasks);
+        }
+
+        tasks.Add(Task.Delay(options.TaskTimeout));
+        return await Task.WhenAny(tasks);
+    }
+
+    private static async Task<DnsResult> GetDnsResult(
+        Task<IPHostEntry> dnsTask)
+    {
+        try
+        {
+            IPHostEntry entry = await dnsTask;
+            return new DnsSuccess(entry);
+        }
+        catch (Exception exception)
+        {
+            return new DnsFailure(DnsStatus.Error, exception);
+        }
     }
 }

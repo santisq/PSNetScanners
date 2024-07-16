@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Management.Automation;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,20 +14,15 @@ internal sealed class PingWorker : WorkerBase<string, Output>
 
     protected override Task Worker { get; }
 
-    private readonly TaskOptions _options;
+    private readonly PingAsyncOptions _options;
 
     private readonly Cancellation _cancellation;
 
-    internal PingWorker(int bufferSize, int? taskTimeout, int throttle)
-        : base(throttle)
+    internal PingWorker(PingAsyncOptions options)
+        : base(options.ThrottleLimit)
     {
         _cancellation = new Cancellation();
-        _options = new TaskOptions
-        {
-            Buffer = Encoding.ASCII.GetBytes(new string('A', bufferSize)),
-            Cancellation = _cancellation,
-            TaskTimeout = taskTimeout ?? 4000
-        };
+        _options = options;
         Worker = Task.Run(Start, Token);
     }
 
@@ -46,7 +40,8 @@ internal sealed class PingWorker : WorkerBase<string, Output>
                 tasks.Add(PingResult.CreateAsync(
                     source: source,
                     destination: host,
-                    options: _options));
+                    options: _options,
+                    cancelTask: _cancellation.Task));
 
                 if (tasks.Count == _throttle)
                 {

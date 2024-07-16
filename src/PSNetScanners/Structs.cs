@@ -1,15 +1,14 @@
 using System.Management.Automation;
-using System.Threading.Tasks;
+using System.Net.NetworkInformation;
 
 namespace PSNetScanners;
 
-internal record struct TaskOptions(
-    Cancellation Cancellation,
+internal record struct PingAsyncOptions(
+    PingOptions PingOptions,
+    int ThrottleLimit,
     int TaskTimeout,
-    byte[] Buffer)
-{
-    internal readonly Task CancelTask { get => Cancellation.Task; }
-}
+    byte[] Buffer,
+    bool ResolveDns);
 
 internal record struct Output(Type Type, object Data)
 {
