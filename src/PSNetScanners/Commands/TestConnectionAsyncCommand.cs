@@ -5,11 +5,8 @@ namespace PSNetScanners;
 
 [Cmdlet(VerbsDiagnostic.Test, "ConnectionAsync")]
 [OutputType(typeof(PingResult))]
-public sealed class TestConnectionAsyncCommand : PSCmdlet, IDisposable
+public sealed class TestConnectionAsyncCommand : PSNetScannerCommandBase, IDisposable
 {
-    [Parameter(Mandatory = true, ValueFromPipeline = true, Position = 0)]
-    public string[] Address { get; set; } = null!;
-
     [Parameter]
     [ValidateRange(200, int.MaxValue)]
     public int? TaskTimeoutMilliseconds { get; set; }
@@ -18,11 +15,7 @@ public sealed class TestConnectionAsyncCommand : PSCmdlet, IDisposable
     [ValidateRange(1, 65500)]
     public int BufferSize { get; set; } = 32;
 
-    [Parameter]
-    [ValidateRange(1, int.MaxValue)]
-    public int ThrottleLimit { get; set; } = 50;
-
-    private PingWorker? _worker;
+    internal PingWorker? _worker;
 
     protected override void BeginProcessing()
     {
@@ -53,8 +46,7 @@ public sealed class TestConnectionAsyncCommand : PSCmdlet, IDisposable
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
-            _worker.Cancel();
-            _worker.Wait();
+            StopHandle(_worker);
             throw;
         }
     }
@@ -73,30 +65,14 @@ public sealed class TestConnectionAsyncCommand : PSCmdlet, IDisposable
             {
                 Process(data);
             }
+            _worker.Wait();
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
-            _worker.Cancel();
-            _worker.Wait();
+            StopHandle(_worker);
             throw;
         }
     }
-
-    private void Process(Output output)
-    {
-        switch (output.Type)
-        {
-            case Type.Success:
-                WriteObject((PingResult)output.Data);
-                break;
-
-            case Type.Error:
-                WriteError((ErrorRecord)output.Data);
-                break;
-        }
-    }
-
-    protected override void StopProcessing() => _worker?.Cancel();
 
     public void Dispose()
     {

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Management.Automation;
 using System.Net;
@@ -10,56 +9,39 @@ using System.Threading.Tasks;
 
 namespace PSNetScanners;
 
-internal sealed class PingWorker : IDisposable
+internal sealed class PingWorker : WorkerBase<string, Output>
 {
-    private readonly BlockingCollection<string> _inputQueue = [];
+    protected override CancellationToken Token { get => _cancellation.Token; }
 
-    private readonly BlockingCollection<Output> _outputQueue = [];
-
-    private readonly Task _worker;
-
-    private CancellationToken Token { get => _cancellation.Token; }
+    protected override Task Worker { get; }
 
     private readonly TaskOptions _options;
 
     private readonly Cancellation _cancellation;
 
-    private readonly int _throttle;
-
     internal PingWorker(int bufferSize, int? taskTimeout, int throttle)
+        : base(throttle)
     {
         _cancellation = new Cancellation();
-        _throttle = throttle;
         _options = new TaskOptions
         {
             Buffer = Encoding.ASCII.GetBytes(new string('A', bufferSize)),
             Cancellation = _cancellation,
             TaskTimeout = taskTimeout ?? 4000
         };
-
-        _worker = Task.Run(Start, Token);
+        Worker = Task.Run(Start, Token);
     }
 
-    internal void Cancel() => _cancellation.Cancel();
+    internal override void Cancel() => _cancellation.Cancel();
 
-    internal void Wait() => _worker.GetAwaiter().GetResult();
-
-    internal void Enqueue(string item) => _inputQueue.Add(item, Token);
-
-    internal void CompleteAdding() => _inputQueue.CompleteAdding();
-
-    internal IEnumerable<Output> GetOutput() => _outputQueue.GetConsumingEnumerable(Token);
-
-    internal bool TryTake(out Output result) => _outputQueue.TryTake(out result, 0, Token);
-
-    private async Task Start()
+    protected override async Task Start()
     {
         string source = Dns.GetHostName();
         List<Task<PingResult>> tasks = [];
 
-        while (!_inputQueue.IsCompleted)
+        while (!InputQueue.IsCompleted)
         {
-            if (_inputQueue.TryTake(out string host, 0, Token))
+            if (InputQueue.TryTake(out string host, 0, Token))
             {
                 tasks.Add(PingResult.CreateAsync(
                     source: source,
@@ -78,7 +60,7 @@ internal sealed class PingWorker : IDisposable
             await ProcessOne(tasks);
         }
 
-        _outputQueue.CompleteAdding();
+        OutputQueue.CompleteAdding();
 
         async Task ProcessOne(List<Task<PingResult>> tasks)
         {
@@ -88,26 +70,24 @@ internal sealed class PingWorker : IDisposable
             try
             {
                 PingResult result = await task;
-                _outputQueue.Add(Output.CreateSuccess(result), Token);
+                OutputQueue.Add(Output.CreateSuccess(result), Token);
             }
             catch (PingException exception)
             {
                 ErrorRecord error = exception.InnerException.CreateProcessing(task);
-                _outputQueue.Add(Output.CreateError(error), Token);
+                OutputQueue.Add(Output.CreateError(error), Token);
             }
             catch (Exception exception)
             {
                 ErrorRecord error = exception.CreateProcessing(task);
-                _outputQueue.Add(Output.CreateError(error), Token);
+                OutputQueue.Add(Output.CreateError(error), Token);
             }
         }
     }
 
-    public void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        _inputQueue.Dispose();
-        _outputQueue.Dispose();
+        base.Dispose(disposing);
         _cancellation.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

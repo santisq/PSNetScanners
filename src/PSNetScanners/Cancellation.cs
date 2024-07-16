@@ -10,8 +10,6 @@ internal sealed class Cancellation : IDisposable
 
     internal CancellationToken Token { get => _cts.Token; }
 
-    internal bool IsCancellationRequested { get => _cts.IsCancellationRequested; }
-
     internal Task Task { get; }
 
     internal Cancellation()
