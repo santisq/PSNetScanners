@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Management.Automation;
-using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PSNetScanners;
 
-internal sealed class PingWorker : WorkerBase<string, Output>
+internal sealed class PingWorker : WorkerBase<string, Output, PingResult>
 {
     protected override CancellationToken Token { get => _cancellation.Token; }
 
@@ -30,7 +29,6 @@ internal sealed class PingWorker : WorkerBase<string, Output>
 
     protected override async Task Start()
     {
-        string source = Dns.GetHostName();
         List<Task<PingResult>> tasks = [];
 
         while (!InputQueue.IsCompleted)
@@ -38,45 +36,44 @@ internal sealed class PingWorker : WorkerBase<string, Output>
             if (InputQueue.TryTake(out string host, 0, Token))
             {
                 tasks.Add(PingResult.CreateAsync(
-                    source: source,
+                    source: Source,
                     destination: host,
                     options: _options,
                     cancelTask: _cancellation.Task));
 
                 if (tasks.Count == _throttle)
                 {
-                    await ProcessOne(tasks);
+                    Task<PingResult> result = await WaitOne(tasks);
+                    await ProcessTaskAsync(result);
                 }
             }
         }
 
         while (tasks.Count > 0)
         {
-            await ProcessOne(tasks);
+            Task<PingResult> result = await WaitOne(tasks);
+            await ProcessTaskAsync(result);
         }
 
         OutputQueue.CompleteAdding();
+    }
 
-        async Task ProcessOne(List<Task<PingResult>> tasks)
+    protected override async Task ProcessTaskAsync(Task<PingResult> task)
+    {
+        try
         {
-            Task<PingResult> task = await Task.WhenAny(tasks);
-            tasks.Remove(task);
-
-            try
-            {
-                PingResult result = await task;
-                OutputQueue.Add(Output.CreateSuccess(result), Token);
-            }
-            catch (PingException exception)
-            {
-                ErrorRecord error = exception.InnerException.CreateProcessing(task);
-                OutputQueue.Add(Output.CreateError(error), Token);
-            }
-            catch (Exception exception)
-            {
-                ErrorRecord error = exception.CreateProcessing(task);
-                OutputQueue.Add(Output.CreateError(error), Token);
-            }
+            PingResult result = await task;
+            OutputQueue.Add(Output.CreateSuccess(result), Token);
+        }
+        catch (PingException exception)
+        {
+            ErrorRecord error = exception.InnerException.CreateProcessing(task);
+            OutputQueue.Add(Output.CreateError(error), Token);
+        }
+        catch (Exception exception)
+        {
+            ErrorRecord error = exception.CreateProcessing(task);
+            OutputQueue.Add(Output.CreateError(error), Token);
         }
     }
 

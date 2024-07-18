@@ -1,43 +1,29 @@
-﻿using System;
+using System;
 using System.Management.Automation;
-using System.Net.NetworkInformation;
-using System.Text;
+using System.Net;
 
 namespace PSNetScanners;
 
-[Cmdlet(VerbsDiagnostic.Test, "PingAsync")]
-[OutputType(typeof(PingResult))]
-public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
+
+[Cmdlet(VerbsDiagnostic.Test, "TcpAsync")]
+[OutputType(typeof(TcpResult))]
+public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
 {
-    [Parameter]
-    [ValidateRange(1, 65500)]
-    [Alias("bfs")]
-    public int BufferSize { get; set; } = 32;
+    [Parameter(
+        Mandatory = true,
+        ValueFromPipelineByPropertyName = true,
+        Position = 1)]
+    [ValidateRange(IPEndPoint.MinPort, IPEndPoint.MaxPort)]
+    [Alias("p")]
+    public int[] Port { get; set; } = null!;
 
-    [Parameter]
-    [Alias("dns")]
-    public SwitchParameter ResolveDns { get; set; }
-
-    [Parameter]
-    public int Ttl { get; set; } = 128;
-
-    [Parameter]
-    public SwitchParameter DontFragment { get; set; }
-
-    private PingWorker? _worker;
+    private TcpWorker? _worker;
 
     protected override void BeginProcessing()
     {
-        PingAsyncOptions options = new()
-        {
-            PingOptions = new PingOptions(Ttl, DontFragment.IsPresent),
-            Buffer = Encoding.ASCII.GetBytes(new string('A', BufferSize)),
-            TaskTimeout = TaskTimeoutMilliseconds ?? 4000,
-            ThrottleLimit = ThrottleLimit,
-            ResolveDns = ResolveDns.IsPresent
-        };
-
-        _worker = new PingWorker(options);
+        _worker = new TcpWorker(
+            throttle: ThrottleLimit,
+            timeout: TaskTimeoutMilliseconds ?? 4000);
     }
 
     protected override void ProcessRecord()
@@ -51,7 +37,13 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
         {
             foreach (string address in Target)
             {
-                _worker.Enqueue(address);
+                foreach (int port in Port)
+                {
+                    _worker.Enqueue(new TcpInput(
+                        source: _worker.Source,
+                        target: address,
+                        port: port));
+                }
             }
 
             while (_worker.TryTake(out Output data))

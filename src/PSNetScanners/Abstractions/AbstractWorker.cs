@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,6 +10,8 @@ internal abstract class WorkerBase(int throttle) : IDisposable
     protected abstract CancellationToken Token { get; }
 
     protected abstract Task Worker { get; }
+
+    internal string Source { get; } = Dns.GetHostName();
 
     protected readonly int _throttle = throttle;
 

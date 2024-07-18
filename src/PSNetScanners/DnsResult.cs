@@ -3,13 +3,6 @@ using System.Net;
 
 namespace PSNetScanners;
 
-public enum DnsStatus
-{
-    Success,
-    Timeout,
-    Error
-}
-
 public abstract class DnsResult(DnsStatus status)
 {
     public DnsStatus Status { get; } = status;

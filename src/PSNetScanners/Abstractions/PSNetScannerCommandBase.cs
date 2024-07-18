@@ -9,13 +9,23 @@ public abstract class PSNetScannerCommandBase : PSCmdlet
         ValueFromPipeline = true,
         ValueFromPipelineByPropertyName = true,
         Position = 0)]
-    [Alias(["Address", "Host"])]
+    [Alias([
+        "ComputerName",
+        "HostName",
+        "Host",
+        "Server",
+        "Address"])]
     public string[] Target { get; set; } = null!;
 
     [Parameter]
     [ValidateRange(1, int.MaxValue)]
-    [Alias("ttl")]
+    [Alias("tl")]
     public int ThrottleLimit { get; set; } = 50;
+
+    [Parameter]
+    [ValidateRange(200, int.MaxValue)]
+    [Alias("ms")]
+    public int? TaskTimeoutMilliseconds { get; set; }
 
     internal static void StopHandle(WorkerBase worker)
     {
