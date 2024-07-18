@@ -61,7 +61,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
-            StopAction(_worker);
+            StopWorker(_worker);
             throw;
         }
     }
@@ -84,7 +84,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
-            StopAction(_worker);
+            StopWorker(_worker);
             throw;
         }
     }
