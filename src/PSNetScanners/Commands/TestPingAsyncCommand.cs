@@ -32,7 +32,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
         {
             PingOptions = new PingOptions(Ttl, DontFragment.IsPresent),
             Buffer = Encoding.ASCII.GetBytes(new string('A', BufferSize)),
-            TaskTimeout = TaskTimeoutMilliseconds ?? 4000,
+            TaskTimeout = ConnectionTimeout ?? 4000,
             ThrottleLimit = ThrottleLimit,
             ResolveDns = ResolveDns.IsPresent
         };
@@ -61,7 +61,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
-            StopHandle(_worker);
+            StopAction(_worker);
             throw;
         }
     }
@@ -84,7 +84,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
-            StopHandle(_worker);
+            StopAction(_worker);
             throw;
         }
     }

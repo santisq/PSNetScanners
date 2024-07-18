@@ -24,8 +24,8 @@ public abstract class PSNetScannerCommandBase : PSCmdlet
 
     [Parameter]
     [ValidateRange(200, int.MaxValue)]
-    [Alias("ms")]
-    public int? TaskTimeoutMilliseconds { get; set; }
+    [Alias(["timeout", "to", "ct"])]
+    public int? ConnectionTimeout { get; set; }
 
     internal static void StopHandle(WorkerBase worker)
     {
