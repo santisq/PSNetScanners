@@ -1,5 +1,9 @@
 ﻿using namespace System.IO
 
+if ($IsLinux) {
+    sudo setcap cap_net_raw=eip /opt/microsoft/powershell/7/pwsh
+}
+
 $moduleName = (Get-Item ([Path]::Combine($PSScriptRoot, '..', 'module', '*.psd1'))).BaseName
 $manifestPath = [Path]::Combine($PSScriptRoot, '..', 'output', $moduleName)
 
@@ -15,10 +19,10 @@ Describe TestPingAsyncCommand {
 
         It 'Error' {
             { Test-PingAsync -Target doesNotExist.com -ErrorAction Stop } |
-                Should -Throw
+                Should -Throw -ExceptionType ([System.Net.Sockets.SocketException])
 
             { Test-PingAsync -Target noSuchAddress -ErrorAction Stop } |
-                Should -Throw
+                Should -Throw -ExceptionType ([System.Net.Sockets.SocketException])
         }
     }
 
@@ -62,28 +66,28 @@ Describe TestPingAsyncCommand {
         }
 
         It 'ConnectionTimeout' {
-            { $range | Test-PingAsync -ConnectionTimeout 200 -ErrorAction Stop } |
-                Should -Not -Throw
+            $range | Test-PingAsync -ConnectionTimeout 200 -ErrorAction Stop |
+                Should -HaveCount 20
         }
 
         It 'ThrottleLimit' {
-            { $range | Test-PingAsync -ThrottleLimit 300 -ErrorAction Stop } |
-                Should -Not -Throw
+            $range | Test-PingAsync -ThrottleLimit 300 -ErrorAction Stop |
+                Should -HaveCount 20
         }
 
         It 'BufferSize' {
-            { $range | Test-PingAsync -BufferSize 1 -ErrorAction Stop } |
-                Should -Not -Throw
+            $range | Test-PingAsync -BufferSize 1 -ErrorAction Stop |
+                Should -HaveCount 20
         }
 
         It 'Ttl' {
-            { $range | Test-PingAsync -Ttl 1 -ErrorAction Stop } |
-                Should -Not -Throw
+            $range | Test-PingAsync -Ttl 1 -ErrorAction Stop |
+                Should -HaveCount 20
         }
 
         It 'DontFragment' {
-            { $range | Test-PingAsync -DontFragment -ErrorAction Stop } |
-                Should -Not -Throw
+            $range | Test-PingAsync -DontFragment -ErrorAction Stop |
+                Should -HaveCount 20
         }
     }
 }
