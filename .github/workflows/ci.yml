@@ -84,7 +84,6 @@ jobs:
         }
 
         Get-ChildItem output/*.nupkg | Rename-Item -NewName { $_.Name -replace '.nupkg', '.zip' }
-
         Expand-Archive -Path output/*.zip -DestinationPath $destPath -Force -ErrorAction Stop
 
     - name: Run Tests - PowerShell 5.1

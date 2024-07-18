@@ -1,9 +1,5 @@
 ﻿using namespace System.IO
 
-if ($IsLinux) {
-    sudo setcap cap_net_raw=eip /opt/microsoft/powershell/7/pwsh
-}
-
 $moduleName = (Get-Item ([Path]::Combine($PSScriptRoot, '..', 'module', '*.psd1'))).BaseName
 $manifestPath = [Path]::Combine($PSScriptRoot, '..', 'output', $moduleName)
 
@@ -40,6 +36,30 @@ Describe TestPingAsyncCommand {
         }
     }
 
+    Context 'PingResult Type' {
+        BeforeAll {
+            $ping = Test-PingAsync google.com
+            $ping | Out-Null
+        }
+
+        It 'Source' {
+            $ping.Source | Should -BeNullOrEmpty
+            $ping.Source | Should -BeOfType ([string])
+        }
+
+        It 'Destination' {
+            $ping.Destination | Should -BeNullOrEmpty
+            $ping.Destination | Should -BeOfType ([string])
+        }
+
+        It 'DisplayAddress' {
+            $ping.DisplayAddress | Should -BeNullOrEmpty
+            $ping.DisplayAddress | Should -BeOfType ([string])
+        }
+
+
+    }
+
     Context 'Test-PingAsync' {
         BeforeAll {
             $range = makeiprange 127.0.0 1 255
@@ -67,6 +87,9 @@ Describe TestPingAsyncCommand {
 
         It 'ConnectionTimeout' {
             $range | Test-PingAsync -ConnectionTimeout 200 -ErrorAction Stop |
+                Should -HaveCount 20
+
+            $range | Test-PingAsync -ConnectionTimeout 200 -ResolveDns -ErrorAction Stop |
                 Should -HaveCount 20
         }
 

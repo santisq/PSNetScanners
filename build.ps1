@@ -38,6 +38,10 @@ if (-not ('ProjectBuilder.ProjectInfo' -as [type])) {
     }
 }
 
+if ($IsLinux) {
+    sudo setcap cap_net_raw=eip /opt/microsoft/powershell/7/pwsh
+}
+
 $projectInfo = [ProjectBuilder.ProjectInfo]::Create($PSScriptRoot, $Configuration)
 $projectInfo.GetRequirements() | Import-Module -DisableNameChecking -Force
 
