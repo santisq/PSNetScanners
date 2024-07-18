@@ -14,10 +14,7 @@ Describe TestPingAsyncCommand {
         }
 
         It 'Error' {
-            { Test-PingAsync -Target doesNotExist.com -ErrorAction Stop } |
-                Should -Throw -ExceptionType ([System.Net.Sockets.SocketException])
-
-            { Test-PingAsync -Target noSuchAddress -ErrorAction Stop } |
+            { Test-PingAsync -Target ([guid]::NewGuid()) -ErrorAction Stop } |
                 Should -Throw -ExceptionType ([System.Net.Sockets.SocketException])
         }
     }
@@ -30,7 +27,7 @@ Describe TestPingAsyncCommand {
         }
 
         It 'DnsFailure' {
-            $result = Test-PingAsync 127.0.0.2 -ResolveDns
+            $result = Test-PingAsync 255.255.255.255 -ResolveDns
             $result.DnsResult | Should -BeOfType ([PSNetScanners.DnsFailure])
             $result.DnsResult.Status | Should -Be ([PSNetScanners.DnsStatus]::Error)
         }
@@ -43,17 +40,17 @@ Describe TestPingAsyncCommand {
         }
 
         It 'Source' {
-            $ping.Source | Should -BeNullOrEmpty
+            $ping.Source | Should -Not -BeNullOrEmpty
             $ping.Source | Should -BeOfType ([string])
         }
 
         It 'Destination' {
-            $ping.Destination | Should -BeNullOrEmpty
+            $ping.Destination | Should -Not -BeNullOrEmpty
             $ping.Destination | Should -BeOfType ([string])
         }
 
         It 'DisplayAddress' {
-            $ping.DisplayAddress | Should -BeNullOrEmpty
+            $ping.DisplayAddress | Should -Not -BeNullOrEmpty
             $ping.DisplayAddress | Should -BeOfType ([string])
         }
 
