@@ -53,7 +53,7 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
-            StopWorker(_worker);
+            _worker.Cancel();
             throw;
         }
     }
@@ -76,7 +76,7 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
-            StopWorker(_worker);
+            _worker.Cancel();
             throw;
         }
     }

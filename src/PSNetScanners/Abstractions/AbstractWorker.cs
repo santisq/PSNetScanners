@@ -5,13 +5,16 @@ using System.Threading.Tasks;
 
 namespace PSNetScanners;
 
-internal abstract class WorkerBase(int throttle) : IDisposable
+internal abstract class WorkerBase(int throttle, Cancellation cancellation)
+    : IDisposable
 {
-    protected abstract CancellationToken Token { get; }
+    protected CancellationToken Token { get => _cancellation.Token; }
 
     protected abstract Task Worker { get; }
 
     internal string Source { get; } = Dns.GetHostName();
+
+    protected readonly Cancellation _cancellation = cancellation;
 
     protected readonly int _throttle = throttle;
 
@@ -19,7 +22,11 @@ internal abstract class WorkerBase(int throttle) : IDisposable
 
     protected abstract Task Start();
 
-    internal abstract void Cancel();
+    internal void Cancel()
+    {
+        _cancellation.Cancel();
+        Wait();
+    }
 
     internal void Wait() => Worker.GetAwaiter().GetResult();
 

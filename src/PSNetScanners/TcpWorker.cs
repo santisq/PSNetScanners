@@ -8,18 +8,14 @@ namespace PSNetScanners;
 
 internal sealed class TcpWorker : WorkerBase<TcpInput, Output, TcpResult>
 {
-    protected override CancellationToken Token { get => _cancellation.Token; }
-
     protected override Task Worker { get; }
 
     private readonly int _timeout;
 
-    private readonly Cancellation _cancellation;
-
-    internal TcpWorker(int throttle, int timeout) : base(throttle)
+    internal TcpWorker(int throttle, int timeout)
+        : base(throttle, new Cancellation())
     {
         _timeout = timeout;
-        _cancellation = new Cancellation();
         Worker = Task.Run(Start, Token);
     }
 
@@ -64,10 +60,5 @@ internal sealed class TcpWorker : WorkerBase<TcpInput, Output, TcpResult>
             ErrorRecord error = exception.CreateProcessing(task);
             OutputQueue.Add(Output.CreateError(error), Token);
         }
-    }
-
-    internal override void Cancel()
-    {
-        throw new System.NotImplementedException();
     }
 }

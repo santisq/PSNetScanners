@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace PSNetScanners;
 
-internal abstract class WorkerBase<TInput, TOutput, TResult>(int throttle) :
-    WorkerBase(throttle)
+internal abstract class WorkerBase<TInput, TOutput, TResult>(int throttle, Cancellation cancellation) :
+    WorkerBase(throttle, cancellation)
 {
     protected virtual BlockingCollection<TInput> InputQueue { get; } = [];
 

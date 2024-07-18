@@ -27,12 +27,6 @@ public abstract class PSNetScannerCommandBase : PSCmdlet
     [Alias(["timeout", "to", "ct"])]
     public int? ConnectionTimeout { get; set; }
 
-    internal static void StopWorker(WorkerBase worker)
-    {
-        worker.Cancel();
-        worker.Wait();
-    }
-
     internal void Process(Output output)
     {
         switch (output.Type)

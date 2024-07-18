@@ -9,23 +9,16 @@ namespace PSNetScanners;
 
 internal sealed class PingWorker : WorkerBase<string, Output, PingResult>
 {
-    protected override CancellationToken Token { get => _cancellation.Token; }
-
     protected override Task Worker { get; }
 
     private readonly PingAsyncOptions _options;
 
-    private readonly Cancellation _cancellation;
-
     internal PingWorker(PingAsyncOptions options)
-        : base(options.ThrottleLimit)
+        : base(options.ThrottleLimit, new Cancellation())
     {
-        _cancellation = new Cancellation();
         _options = options;
         Worker = Task.Run(Start, Token);
     }
-
-    internal override void Cancel() => _cancellation.Cancel();
 
     protected override async Task Start()
     {
