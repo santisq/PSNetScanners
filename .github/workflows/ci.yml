@@ -87,15 +87,20 @@ jobs:
 
         Expand-Archive -Path output/*.zip -DestinationPath $destPath -Force -ErrorAction Stop
 
-    - name: Run Tests - Windows PowerShell
+    - name: Run Tests - PowerShell 5.1
       if: ${{ matrix.info.psversion == '5.1' }}
       shell: powershell
       run: ./build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Test
 
-    - name: Run Tests - PowerShell
-      if: ${{ matrix.info.psversion != '5.1' }}
+    - name: Run Tests - PowerShell 7 Windows
+      if: ${{ matrix.info.name == 'PS-7_Windows' }}
       shell: pwsh
       run: ./build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Test
+
+    - name: Run Tests - PowerShell 7 Linux
+      if: ${{ matrix.info.name == 'PS-7_Linux' }}
+      shell: pwsh
+      run: sudo ./build.ps1 -Configuration $env:BUILD_CONFIGURATION -Task Test
 
     - name: Upload Test Results
       if: always()

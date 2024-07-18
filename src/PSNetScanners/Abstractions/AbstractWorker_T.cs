@@ -19,7 +19,7 @@ internal abstract class WorkerBase<TInput, TOutput, TResult>(int throttle, Cance
 
     internal bool TryTake(out TOutput result) => OutputQueue.TryTake(out result, 0, Token);
 
-    protected static async Task<Task<TResult>> WaitOne(
+    protected static async Task<Task<TResult>> WaitOneAsync(
         List<Task<TResult>> tasks)
     {
         Task<TResult> task = await Task.WhenAny(tasks);

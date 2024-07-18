@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Management.Automation;
 using System.Net.NetworkInformation;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace PSNetScanners;
@@ -36,7 +35,7 @@ internal sealed class PingWorker : WorkerBase<string, Output, PingResult>
 
                 if (tasks.Count == _throttle)
                 {
-                    Task<PingResult> result = await WaitOne(tasks);
+                    Task<PingResult> result = await WaitOneAsync(tasks);
                     await ProcessTaskAsync(result);
                 }
             }
@@ -44,7 +43,7 @@ internal sealed class PingWorker : WorkerBase<string, Output, PingResult>
 
         while (tasks.Count > 0)
         {
-            Task<PingResult> result = await WaitOne(tasks);
+            Task<PingResult> result = await WaitOneAsync(tasks);
             await ProcessTaskAsync(result);
         }
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Management.Automation;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace PSNetScanners;
@@ -34,14 +33,14 @@ internal sealed class TcpWorker : WorkerBase<TcpInput, Output, TcpResult>
 
             if (tasks.Count == _throttle)
             {
-                Task<TcpResult> result = await WaitOne(tasks);
+                Task<TcpResult> result = await WaitOneAsync(tasks);
                 await ProcessTaskAsync(result);
             }
         }
 
         while (tasks.Count > 0)
         {
-            Task<TcpResult> result = await WaitOne(tasks);
+            Task<TcpResult> result = await WaitOneAsync(tasks);
             await ProcessTaskAsync(result);
         }
 
