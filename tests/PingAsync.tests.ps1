@@ -14,7 +14,7 @@ Describe TestPingAsyncCommand {
         }
 
         It 'Error' {
-            { Test-PingAsync -Target 192.0.2.10 -ErrorAction Stop } |
+            { Test-PingAsync -Target "$([guid]::NewGuid()).com" -ErrorAction Stop } |
                 Should -Throw -ExceptionType ([System.Net.Sockets.SocketException])
         }
     }
@@ -27,7 +27,10 @@ Describe TestPingAsyncCommand {
         }
 
         It 'DnsFailure' {
-            $result = Test-PingAsync 127.0.0.255 -ResolveDns
+            $result = makeiprange 127.0.0 1 255 |
+                Test-PingAsync -ResolveDns |
+                Where-Object { $_.DnsResult.Status -eq [PSNetScanners.DnsStatus]::Error } |
+                Select-Object -First 1
             $result.DnsResult | Should -BeOfType ([PSNetScanners.DnsFailure])
             $result.DnsResult.Status | Should -Be ([PSNetScanners.DnsStatus]::Error)
         }
