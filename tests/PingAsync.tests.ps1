@@ -14,7 +14,7 @@ Describe TestPingAsyncCommand {
         }
 
         It 'Error' {
-            { Test-PingAsync -Target ([guid]::NewGuid()) -ErrorAction Stop } |
+            { Test-PingAsync -Target 192.0.2.10 -ErrorAction Stop } |
                 Should -Throw -ExceptionType ([System.Net.Sockets.SocketException])
         }
     }
