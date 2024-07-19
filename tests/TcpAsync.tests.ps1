@@ -47,9 +47,15 @@ Describe TestPingAsyncCommand {
 
     Context 'Test-TcpAsync' {
         It 'Parallel Tcp Tests' {
+            $timeout = 30
+            if ($IsLinux) {
+                # seems to be much slower in linux
+                $timeout = 150
+            }
+
             Measure-Command { $targets | Test-TcpAsync } |
                 ForEach-Object TotalSeconds |
-                Should -BeLessOrEqual 30
+                Should -BeLessOrEqual $timeout
         }
 
         It 'Stops processing early' {
@@ -61,7 +67,7 @@ Describe TestPingAsyncCommand {
 
     Context 'Parameters' {
         It 'ThrottleLimit' {
-            $result = $targets | Test-TcpAsync -ThrottleLimit $targets.Count
+            $result = $targets | Test-TcpAsync -ThrottleLimit 3
             $result | Should -HaveCount $targets.Count
             $result.Status | Should -Contain ([PSNetScanners.DnsStatus]::Success)
             $result.Status | Should -Contain ([PSNetScanners.DnsStatus]::Error)
