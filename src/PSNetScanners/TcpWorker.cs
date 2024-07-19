@@ -33,15 +33,13 @@ internal sealed class TcpWorker : WorkerBase<TcpInput, Output, TcpResult>
 
             if (tasks.Count == _throttle)
             {
-                Task<TcpResult> result = await WaitOneAsync(tasks);
-                await ProcessTaskAsync(result);
+                await ProcessOneAsync(tasks);
             }
         }
 
         while (tasks.Count > 0)
         {
-            Task<TcpResult> result = await WaitOneAsync(tasks);
-            await ProcessTaskAsync(result);
+            await ProcessOneAsync(tasks);
         }
 
         OutputQueue.CompleteAdding();

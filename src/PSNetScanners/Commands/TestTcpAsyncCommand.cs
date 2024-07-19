@@ -28,10 +28,7 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
 
     protected override void ProcessRecord()
     {
-        if (_worker is null)
-        {
-            return;
-        }
+        Dbg.Assert(_worker is not null);
 
         try
         {
@@ -60,10 +57,7 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
 
     protected override void EndProcessing()
     {
-        if (_worker is null)
-        {
-            return;
-        }
+        Dbg.Assert(_worker is not null);
 
         try
         {

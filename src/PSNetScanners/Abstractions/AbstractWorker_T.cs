@@ -1,11 +1,12 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PSNetScanners;
 
-internal abstract class WorkerBase<TInput, TOutput, TResult>(int throttle, Cancellation cancellation) :
-    WorkerBase(throttle, cancellation)
+internal abstract class WorkerBase<TInput, TOutput, TResult>(int throttle, Cancellation cancellation)
+    : WorkerBase(throttle, cancellation)
 {
     protected virtual BlockingCollection<TInput> InputQueue { get; } = [];
 
@@ -19,12 +20,12 @@ internal abstract class WorkerBase<TInput, TOutput, TResult>(int throttle, Cance
 
     internal bool TryTake(out TOutput result) => OutputQueue.TryTake(out result, 0, Token);
 
-    protected static async Task<Task<TResult>> WaitOneAsync(
+    protected async Task ProcessOneAsync(
         List<Task<TResult>> tasks)
     {
         Task<TResult> task = await Task.WhenAny(tasks);
         tasks.Remove(task);
-        return task;
+        await ProcessTaskAsync(task);
     }
 
     protected abstract Task ProcessTaskAsync(Task<TResult> task);

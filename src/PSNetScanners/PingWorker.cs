@@ -35,16 +35,14 @@ internal sealed class PingWorker : WorkerBase<string, Output, PingResult>
 
                 if (tasks.Count == _throttle)
                 {
-                    Task<PingResult> result = await WaitOneAsync(tasks);
-                    await ProcessTaskAsync(result);
+                    await ProcessOneAsync(tasks);
                 }
             }
         }
 
         while (tasks.Count > 0)
         {
-            Task<PingResult> result = await WaitOneAsync(tasks);
-            await ProcessTaskAsync(result);
+            await ProcessOneAsync(tasks);
         }
 
         OutputQueue.CompleteAdding();
