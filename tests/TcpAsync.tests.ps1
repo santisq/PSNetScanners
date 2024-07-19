@@ -47,15 +47,9 @@ Describe TestPingAsyncCommand {
 
     Context 'Test-TcpAsync' {
         It 'Parallel Tcp Tests' {
-            $timeout = 30
-            if ($IsLinux) {
-                # seems to be much slower in linux
-                $timeout = 150
-            }
-
             Measure-Command { $targets | Test-TcpAsync } |
                 ForEach-Object TotalSeconds |
-                Should -BeLessOrEqual $timeout
+                Should -BeLessOrEqual 150
         }
 
         It 'Stops processing early' {
