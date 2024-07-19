@@ -7,6 +7,7 @@ namespace PSNetScanners;
 
 [Cmdlet(VerbsDiagnostic.Test, "PingAsync")]
 [OutputType(typeof(PingResult))]
+[Alias("pingasync")]
 public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
 {
     [Parameter]

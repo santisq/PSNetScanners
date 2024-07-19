@@ -4,9 +4,9 @@ using System.Net;
 
 namespace PSNetScanners;
 
-
 [Cmdlet(VerbsDiagnostic.Test, "TcpAsync")]
 [OutputType(typeof(TcpResult))]
+[Alias("tcpasync")]
 public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
 {
     [Parameter(
