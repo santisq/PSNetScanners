@@ -27,7 +27,7 @@ Describe TestPingAsyncCommand {
         }
 
         It 'DnsFailure' {
-            $result = Test-PingAsync 255.255.255.255 -ResolveDns
+            $result = Test-PingAsync 127.0.0.255 -ResolveDns
             $result.DnsResult | Should -BeOfType ([PSNetScanners.DnsFailure])
             $result.DnsResult.Status | Should -Be ([PSNetScanners.DnsStatus]::Error)
         }
@@ -53,8 +53,6 @@ Describe TestPingAsyncCommand {
             $ping.DisplayAddress | Should -Not -BeNullOrEmpty
             $ping.DisplayAddress | Should -BeOfType ([string])
         }
-
-
     }
 
     Context 'Test-PingAsync' {
