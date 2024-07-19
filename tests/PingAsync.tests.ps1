@@ -27,7 +27,7 @@ Describe TestPingAsyncCommand {
         }
 
         It 'DnsFailure' {
-            $result = makeiprange 127.0.0 1 255 |
+            $result = makeiprange 10.0.0 1 255 |
                 Test-PingAsync -ResolveDns |
                 Where-Object { $_.DnsResult.Status -eq [PSNetScanners.DnsStatus]::Error } |
                 Select-Object -First 1
