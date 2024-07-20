@@ -73,7 +73,7 @@ Describe TestPingAsyncCommand {
             $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::Opened)
             $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::TimedOut)
             $result |
-                Where-Object Status -EQ Timeout |
+                Where-Object Status -EQ TimedOut |
                 ForEach-Object Details |
                 Should -BeOfType ([System.TimeoutException])
         }
