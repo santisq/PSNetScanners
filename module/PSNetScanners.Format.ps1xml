@@ -47,5 +47,57 @@
         </ListEntries>
       </ListControl>
     </View>
+    <View>
+      <Name>PingAsyncView</Name>
+      <ViewSelectedBy>
+        <TypeName>PSNetScanners.PingResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Source</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Destination</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Address</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Latency</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>DnsResult</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Source</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Destination</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DisplayAddress</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock> [PSNetScanners.Internal._Format]::FormatLatency($_.Latency) </ScriptBlock>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>DnsResult</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
   </ViewDefinitions>
 </Configuration>

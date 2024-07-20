@@ -36,7 +36,7 @@ Describe TestPingAsyncCommand {
         }
 
         It 'Status' {
-            $result.Status | Should -BeExactly ([PSNetScanners.TcpStatus]::Success)
+            $result.Status | Should -BeExactly ([PSNetScanners.TcpStatus]::Opened)
         }
 
         It 'Details' {
@@ -63,15 +63,15 @@ Describe TestPingAsyncCommand {
         It 'ThrottleLimit' {
             $result = $targets | Test-TcpAsync -ThrottleLimit 3 -ConnectionTimeout -1
             $result | Should -HaveCount $targets.Count
-            $result.Status | Should -Contain ([PSNetScanners.DnsStatus]::Success)
-            $result.Status | Should -Contain ([PSNetScanners.DnsStatus]::Error)
+            $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::Opened)
+            $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::Closed)
         }
 
         It 'ConnectionTimeout' {
             $result = $targets | Test-TcpAsync -ThrottleLimit $targets.Count -ConnectionTimeout 200
             $result | Should -HaveCount $targets.Count
-            $result.Status | Should -Contain ([PSNetScanners.DnsStatus]::Success)
-            $result.Status | Should -Contain ([PSNetScanners.DnsStatus]::Timeout)
+            $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::Opened)
+            $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::TimedOut)
             $result |
                 Where-Object Status -EQ Timeout |
                 ForEach-Object Details |

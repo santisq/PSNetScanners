@@ -28,13 +28,13 @@ public sealed class TcpResult
     }
 
     private static TcpResult CreateSuccess(TcpInput input) =>
-        new(input, TcpStatus.Success);
+        new(input, TcpStatus.Opened);
 
     private static TcpResult CreateTimeout(TcpInput input) =>
-            new(input, TcpStatus.Timeout, new TimeoutException());
+            new(input, TcpStatus.TimedOut, new TimeoutException());
 
     private static TcpResult CreateError(TcpInput input, Exception exception) =>
-        new(input, TcpStatus.Error, exception);
+        new(input, TcpStatus.Closed, exception);
 
     internal static async Task<TcpResult> CreateAsync(
         TcpInput input,

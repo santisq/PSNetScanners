@@ -15,7 +15,7 @@ public enum DnsStatus
 
 public enum TcpStatus
 {
-    Success,
-    Timeout,
-    Error
+    Opened,
+    TimedOut,
+    Closed
 }
