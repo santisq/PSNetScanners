@@ -38,14 +38,20 @@ public sealed class TcpResult
 
     internal static async Task<TcpResult> CreateAsync(
         TcpInput input,
-        Task cancelTask,
+        Cancellation cancellation,
         int timeout)
     {
         try
         {
             using TcpClient tcp = new(input.AddressFamily);
             Task tcpTask = tcp.ConnectAsync(input.Target, input.Port);
-            List<Task> tasks = [tcpTask, cancelTask, Task.Delay(timeout)];
+            List<Task> tasks = [tcpTask, cancellation.Task];
+
+            if (timeout != -1)
+            {
+                tasks.Add(Task.Delay(timeout, cancellation.Token));
+            }
+
             Task result = await Task.WhenAny(tasks);
 
             if (result == tcpTask)

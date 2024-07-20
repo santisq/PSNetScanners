@@ -44,7 +44,7 @@ public sealed class PingResult
         string source,
         string destination,
         PingAsyncOptions options,
-        Task cancelTask)
+        Cancellation cancellation)
     {
         using Ping ping = new();
         Task<PingReply> pingTask = ping.SendPingAsync(
@@ -62,8 +62,8 @@ public sealed class PingResult
         }
 
         Task<IPHostEntry> dnsTask = Dns.GetHostEntryAsync(destination);
-        List<Task> tasks = [pingTask, cancelTask, dnsTask];
-        Task result = await WaitOneAsync(options, tasks);
+        List<Task> tasks = [pingTask, cancellation.Task, dnsTask];
+        Task result = await WaitOneAsync(options, cancellation, tasks);
 
         if (result != dnsTask && result != pingTask)
         {
@@ -82,6 +82,7 @@ public sealed class PingResult
 
     private static async Task<Task> WaitOneAsync(
         PingAsyncOptions options,
+        Cancellation cancellation,
         List<Task> tasks)
     {
         if (options.TaskTimeout == 4000)
@@ -89,7 +90,7 @@ public sealed class PingResult
             return await Task.WhenAny(tasks);
         }
 
-        tasks.Add(Task.Delay(options.TaskTimeout));
+        tasks.Add(Task.Delay(options.TaskTimeout, cancellation.Token));
         return await Task.WhenAny(tasks);
     }
 

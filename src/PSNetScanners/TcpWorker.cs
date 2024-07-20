@@ -27,7 +27,7 @@ internal sealed class TcpWorker : WorkerBase<TcpInput, Output, TcpResult>
             {
                 tasks.Add(TcpResult.CreateAsync(
                     input: input,
-                    cancelTask: _cancellation.Task,
+                    cancellation: _cancellation,
                     timeout: _timeout));
             }
 

@@ -31,7 +31,7 @@ internal sealed class PingWorker : WorkerBase<string, Output, PingResult>
                     source: Source,
                     destination: host,
                     options: _options,
-                    cancelTask: _cancellation.Task));
+                    cancellation: _cancellation));
 
                 if (tasks.Count == _throttle)
                 {

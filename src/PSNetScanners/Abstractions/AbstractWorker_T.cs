@@ -34,6 +34,7 @@ internal abstract class WorkerBase<TInput, TOutput, TResult>(int throttle, Cance
     {
         if (!_disposed)
         {
+            _cancellation.Cancel();
             InputQueue.Dispose();
             OutputQueue.Dispose();
         }
