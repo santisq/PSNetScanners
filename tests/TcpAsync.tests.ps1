@@ -61,7 +61,7 @@ Describe TestPingAsyncCommand {
 
     Context 'Parameters' {
         It 'ThrottleLimit' {
-            $result = $targets | Test-TcpAsync -ThrottleLimit 3 -ConnectionTimeout ([int]::MaxValue)
+            $result = $targets | Test-TcpAsync -ThrottleLimit 1 -ConnectionTimeout ([int]::MaxValue)
             $result | Should -HaveCount $targets.Count
             $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::Opened)
             $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::Closed)
