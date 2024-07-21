@@ -29,11 +29,11 @@ internal sealed class TcpWorker : WorkerBase<TcpInput, Output, TcpResult>
                     input: input,
                     cancellation: _cancellation,
                     timeout: _timeout));
-            }
 
-            if (tasks.Count == _throttle)
-            {
-                await ProcessOneAsync(tasks);
+                if (tasks.Count == _throttle)
+                {
+                    await ProcessOneAsync(tasks);
+                }
             }
         }
 

@@ -92,6 +92,12 @@ Describe TestPingAsyncCommand {
         }
 
         It 'ThrottleLimit' {
+            $targets.Target |
+                Sort-Object -Unique |
+                Test-PingAsync -ThrottleLimit 1 |
+                ForEach-Object Status |
+                Should -Be ([System.Net.NetworkInformation.IPStatus]::Success)
+
             $range | Test-PingAsync -ThrottleLimit 300 -ErrorAction Stop |
                 Should -HaveCount 20
         }
@@ -109,6 +115,18 @@ Describe TestPingAsyncCommand {
         It 'DontFragment' {
             $range | Test-PingAsync -DontFragment -ErrorAction Stop |
                 Should -HaveCount 20
+        }
+    }
+
+    Context 'Formatting' {
+        BeforeAll {
+            $ping = Test-PingAsync google.com
+            $ping | Out-Null
+        }
+
+        It 'Format Latency' {
+            [PSNetScanners.Internal._Format]::FormatLatency($ping) |
+                Should -Not -BeNullOrEmpty
         }
     }
 }

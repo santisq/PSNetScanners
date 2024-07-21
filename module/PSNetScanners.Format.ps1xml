@@ -86,7 +86,7 @@
                 <PropertyName>DisplayAddress</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock> [PSNetScanners.Internal._Format]::FormatLatency($_.Latency) </ScriptBlock>
+                <ScriptBlock> [PSNetScanners.Internal._Format]::FormatLatency($_) </ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>Status</PropertyName>
