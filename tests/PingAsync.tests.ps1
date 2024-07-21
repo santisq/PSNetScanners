@@ -104,8 +104,8 @@ Describe TestPingAsyncCommand {
         }
 
         It 'ThrottleLimit' {
-            $targets.Target | Sort-Object -Unique | Test-PingAsync -ThrottleLimit 1 |
-                Should -HaveCount 4
+            $targets | Test-PingAsync -ThrottleLimit 1 |
+                Should -HaveCount 17
 
             $range | Test-PingAsync -ThrottleLimit 300 -ErrorAction Stop |
                 Should -HaveCount 20
@@ -124,6 +124,18 @@ Describe TestPingAsyncCommand {
         It 'DontFragment' {
             $range | Test-PingAsync -DontFragment -ErrorAction Stop |
                 Should -HaveCount 20
+        }
+    }
+
+    It 'Formatting' {
+        BeforeAll {
+            $ping = Test-PingAsync 127.0.0.1
+            $ping | Out-Null
+        }
+
+        It 'Gets format string for Latency' {
+            [PSNetScanners.Internal._Format]::GetFormattedLatency($ping) |
+                Should -Not -BeNullOrEmpty
         }
     }
 }
