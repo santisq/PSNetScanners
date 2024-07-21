@@ -21,9 +21,11 @@ Describe TestPingAsyncCommand {
 
     Context 'DnsResult Type' {
         It 'DnsSuccess' {
-            $result = Test-PingAsync google.com -ResolveDns
+            $result = Test-PingAsync 8.8.8.8 -ResolveDns
             $result.DnsResult | Should -BeOfType ([PSNetScanners.DnsSuccess])
             $result.DnsResult.Status | Should -Be ([PSNetScanners.DnsStatus]::Success)
+            $result.DnsResult.AddressList | Should -BeOfType ([ipaddress])
+            $result.DnsResult.Aliases.Count | Should -BeGreaterOrEqual 0
         }
 
         It 'DnsFailure' {

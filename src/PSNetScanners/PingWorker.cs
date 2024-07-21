@@ -7,7 +7,7 @@ using PSNetScanners.Abstractions;
 
 namespace PSNetScanners;
 
-internal sealed class PingWorker : WorkerBase<string, Output, PingResult>
+internal sealed class PingWorker : WorkerBase<string, PingResult>
 {
     protected override Task Worker { get; }
 

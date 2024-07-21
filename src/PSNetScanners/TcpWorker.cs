@@ -6,7 +6,7 @@ using PSNetScanners.Abstractions;
 
 namespace PSNetScanners;
 
-internal sealed class TcpWorker : WorkerBase<TcpInput, Output, TcpResult>
+internal sealed class TcpWorker : WorkerBase<TcpInput, TcpResult>
 {
     protected override Task Worker { get; }
 
