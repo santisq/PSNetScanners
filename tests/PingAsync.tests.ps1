@@ -56,6 +56,18 @@ Describe TestPingAsyncCommand {
             $ping.DisplayAddress | Should -Not -BeNullOrEmpty
             $ping.DisplayAddress | Should -BeOfType ([string])
         }
+
+        It 'Status' {
+            $ping.Status | Should -BeOfType ([System.Net.NetworkInformation.IPStatus])
+        }
+
+        It 'Address' {
+            $ping.Address | Should -BeOfType ([ipaddress])
+        }
+
+        It 'Latency' {
+            $ping.Latency | Should -BeOfType ([long])
+        }
     }
 
     Context 'Test-PingAsync' {
