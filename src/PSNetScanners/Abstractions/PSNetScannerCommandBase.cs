@@ -23,7 +23,7 @@ public abstract class PSNetScannerCommandBase : PSCmdlet
     public int ThrottleLimit { get; set; } = 50;
 
     [Parameter]
-    [ValidateRange(-1, int.MaxValue)]
+    [ValidateRange(1, int.MaxValue)]
     [Alias(["timeout", "to", "ct"])]
     public int? ConnectionTimeout { get; set; }
 

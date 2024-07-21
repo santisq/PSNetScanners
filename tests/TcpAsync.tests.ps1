@@ -40,7 +40,7 @@ Describe TestPingAsyncCommand {
         }
 
         It 'Details' {
-            $result = Test-TcpAsync -Target github.com -Port 8080 -ConnectionTimeout -1
+            $result = Test-TcpAsync -Target github.com -Port 8080 -ConnectionTimeout ([int]::MaxValue)
             $result.Details | Should -BeOfType ([System.Net.Sockets.SocketException])
         }
     }
@@ -61,7 +61,7 @@ Describe TestPingAsyncCommand {
 
     Context 'Parameters' {
         It 'ThrottleLimit' {
-            $result = $targets | Test-TcpAsync -ThrottleLimit 3 -ConnectionTimeout -1
+            $result = $targets | Test-TcpAsync -ThrottleLimit 3 -ConnectionTimeout ([int]::MaxValue)
             $result | Should -HaveCount $targets.Count
             $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::Opened)
             $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::Closed)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
@@ -61,9 +60,8 @@ public sealed class PingResult
                 reply: await pingTask);
         }
 
-        Task<IPHostEntry> dnsTask = Dns.GetHostEntryAsync(destination);
-        List<Task> tasks = [pingTask, cancellation.Task, dnsTask];
-        Task result = await WaitOneAsync(options, cancellation, tasks);
+        Task<DnsResult> dnsTask = GetDnsAsync(destination, options, cancellation);
+        Task result = await Task.WhenAny(pingTask, cancellation.Task, dnsTask);
 
         if (result != dnsTask && result != pingTask)
         {
@@ -76,30 +74,27 @@ public sealed class PingResult
         return new PingResult(
             source: source,
             destination: destination,
-            dns: await GetDnsResult(dnsTask),
+            dns: await dnsTask,
             reply: await pingTask);
     }
 
-    private static async Task<Task> WaitOneAsync(
+    private static async Task<DnsResult> GetDnsAsync(
+        string destination,
         PingAsyncOptions options,
-        Cancellation cancellation,
-        List<Task> tasks)
+        Cancellation cancellation)
     {
-        if (options.TaskTimeout == 4000)
+        Task<IPHostEntry> dns = Dns.GetHostEntryAsync(destination);
+        Task timeout = cancellation.GetTimeoutTask(options.TaskTimeout);
+        Task result = await Task.WhenAny(dns, timeout);
+
+        if (result == timeout)
         {
-            return await Task.WhenAny(tasks);
+            return DnsFailure.CreateTimeout();
         }
 
-        tasks.Add(Task.Delay(options.TaskTimeout, cancellation.Token));
-        return await Task.WhenAny(tasks);
-    }
-
-    private static async Task<DnsResult> GetDnsResult(
-        Task<IPHostEntry> dnsTask)
-    {
         try
         {
-            IPHostEntry entry = await dnsTask;
+            IPHostEntry entry = await dns;
             return new DnsSuccess(entry);
         }
         catch (Exception exception)

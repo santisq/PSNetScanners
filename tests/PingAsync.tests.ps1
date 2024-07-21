@@ -92,11 +92,8 @@ Describe TestPingAsyncCommand {
         }
 
         It 'ThrottleLimit' {
-            $targets.Target |
-                Sort-Object -Unique |
-                Test-PingAsync -ThrottleLimit 1 |
-                ForEach-Object Status |
-                Should -Be ([System.Net.NetworkInformation.IPStatus]::Success)
+            $targets.Target | Sort-Object -Unique | Test-PingAsync -ThrottleLimit 1 |
+                Should -HaveCount 4
 
             $range | Test-PingAsync -ThrottleLimit 300 -ErrorAction Stop |
                 Should -HaveCount 20

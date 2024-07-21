@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -45,14 +44,10 @@ public sealed class TcpResult
         {
             using TcpClient tcp = new(input.AddressFamily);
             Task tcpTask = tcp.ConnectAsync(input.Target, input.Port);
-            List<Task> tasks = [tcpTask, cancellation.Task];
-
-            if (timeout != -1)
-            {
-                tasks.Add(Task.Delay(timeout, cancellation.Token));
-            }
-
-            Task result = await Task.WhenAny(tasks);
+            Task result = await Task.WhenAny(
+                tcpTask,
+                cancellation.Task,
+                cancellation.GetTimeoutTask(timeout));
 
             if (result == tcpTask)
             {

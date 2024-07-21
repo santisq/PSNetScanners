@@ -18,6 +18,8 @@ internal sealed class Cancellation : IDisposable
         Task = Task.Delay(Timeout.Infinite, _cts.Token);
     }
 
+    internal Task GetTimeoutTask(int timeout) => Task.Delay(timeout, Token);
+
     internal void Cancel() => _cts.Cancel();
 
     public void Dispose() => _cts.Dispose();
