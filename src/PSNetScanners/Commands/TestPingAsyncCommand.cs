@@ -2,8 +2,10 @@
 using System.Management.Automation;
 using System.Net.NetworkInformation;
 using System.Text;
+using PSNetScanners.Abstractions;
+using PSNetScanners.Dbg;
 
-namespace PSNetScanners;
+namespace PSNetScanners.Commands;
 
 [Cmdlet(VerbsDiagnostic.Test, "PingAsync")]
 [OutputType(typeof(PingResult))]
@@ -43,7 +45,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
 
     protected override void ProcessRecord()
     {
-        Dbg.Assert(_worker is not null);
+        Debug.Assert(_worker is not null);
 
         try
         {
@@ -66,7 +68,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
 
     protected override void EndProcessing()
     {
-        Dbg.Assert(_worker is not null);
+        Debug.Assert(_worker is not null);
 
         try
         {

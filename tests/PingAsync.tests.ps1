@@ -127,7 +127,7 @@ Describe TestPingAsyncCommand {
         }
     }
 
-    It 'Formatting' {
+    Context 'Formatting' {
         BeforeAll {
             $ping = Test-PingAsync 127.0.0.1
             $ping | Out-Null

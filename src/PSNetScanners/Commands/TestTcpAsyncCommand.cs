@@ -1,8 +1,10 @@
 using System;
 using System.Management.Automation;
 using System.Net;
+using PSNetScanners.Abstractions;
+using PSNetScanners.Dbg;
 
-namespace PSNetScanners;
+namespace PSNetScanners.Commands;
 
 [Cmdlet(VerbsDiagnostic.Test, "TcpAsync")]
 [OutputType(typeof(TcpResult))]
@@ -28,7 +30,7 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
 
     protected override void ProcessRecord()
     {
-        Dbg.Assert(_worker is not null);
+        Debug.Assert(_worker is not null);
 
         try
         {
@@ -57,7 +59,7 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
 
     protected override void EndProcessing()
     {
-        Dbg.Assert(_worker is not null);
+        Debug.Assert(_worker is not null);
 
         try
         {

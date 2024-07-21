@@ -1,6 +1,6 @@
 using System.Management.Automation;
 
-namespace PSNetScanners;
+namespace PSNetScanners.Abstractions;
 
 public abstract class PSNetScannerCommandBase : PSCmdlet
 {
