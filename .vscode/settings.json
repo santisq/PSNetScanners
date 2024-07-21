@@ -1,0 +1,56 @@
+{
+    "cSpell.enableFiletypes": [
+        "!powershell"
+    ],
+    //-------- Files configuration --------
+    // When enabled, will trim trailing whitespace when you save a file.
+    "files.trimTrailingWhitespace": true,
+    // When enabled, insert a final new line at the end of the file when saving it.
+    "files.insertFinalNewline": true,
+    "search.exclude": {
+        "Release": true,
+        "tools/ResGen": true,
+        "tools/dotnet": true,
+    },
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "/test.settings.json"
+            ],
+            "url": "./tests/settings.schema.json"
+        }
+    ],
+    "editor.rulers": [
+        120,
+    ],
+    //-------- PowerShell configuration --------
+    // Binary modules cannot be unloaded so running in separate processes solves that problem
+    //"powershell.debugging.createTemporaryIntegratedConsole": true,
+    // We use Pester v5 so we don't need the legacy code lens
+    "powershell.pester.useLegacyCodeLens": false,
+    "cSpell.words": [
+        "pwsh"
+    ],
+    "xml.fileAssociations": [
+        {
+            "systemId": "https://raw.githubusercontent.com/PowerShell/PowerShell/master/src/Schemas/Format.xsd",
+            "pattern": "**/*.Format.ps1xml"
+        },
+        {
+            "systemId": "https://raw.githubusercontent.com/PowerShell/PowerShell/master/src/Schemas/Types.xsd",
+            "pattern": "**/*.Types.ps1xml"
+        }
+    ],
+    "[powershell]": {
+        "files.encoding": "utf8bom",
+        "editor.tabSize": 4,
+        "editor.detectIndentation": false,
+        "editor.autoIndent": "full"
+    },
+    "[csharp]": {
+        "editor.maxTokenizationLineLength": 2500,
+        "editor.tabSize": 4,
+        "editor.detectIndentation": false,
+        "editor.autoIndent": "full",
+    }
+}
