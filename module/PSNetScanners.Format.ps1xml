@@ -65,6 +65,7 @@
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Latency</Label>
+            <Alignment>Right</Alignment>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Status</Label>
@@ -86,13 +87,57 @@
                 <PropertyName>DisplayAddress</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
-                <ScriptBlock> [PSNetScanners.Internal._Format]::FormatLatency($_) </ScriptBlock>
+                <ScriptBlock> [PSNetScanners.Internal._Format]::GetFormattedLatency($_) </ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>Status</PropertyName>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>DnsResult</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <View>
+      <Name>TcpAsyncView</Name>
+      <ViewSelectedBy>
+        <TypeName>PSNetScanners.TcpResult</TypeName>
+      </ViewSelectedBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Source</Label>
+            <Width>17</Width>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Destination</Label>
+            <Width>17</Width>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Port</Label>
+            <Width>7</Width>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Status</Label>
+            <Width>15</Width>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Source</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Destination</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Port</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Status</PropertyName>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>

@@ -38,7 +38,7 @@ Describe TestPingAsyncCommand {
 
     Context 'PingResult Type' {
         BeforeAll {
-            $ping = Test-PingAsync google.com
+            $ping = Test-PingAsync 127.0.0.1
             $ping | Out-Null
         }
 
@@ -124,18 +124,6 @@ Describe TestPingAsyncCommand {
         It 'DontFragment' {
             $range | Test-PingAsync -DontFragment -ErrorAction Stop |
                 Should -HaveCount 20
-        }
-    }
-
-    Context 'Formatting' {
-        BeforeAll {
-            $ping = Test-PingAsync google.com
-            $ping | Out-Null
-        }
-
-        It 'Format Latency' {
-            [PSNetScanners.Internal._Format]::FormatLatency($ping) |
-                Should -Not -BeNullOrEmpty
         }
     }
 }

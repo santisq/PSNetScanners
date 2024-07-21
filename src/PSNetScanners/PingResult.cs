@@ -7,17 +7,39 @@ namespace PSNetScanners;
 
 public sealed class PingResult
 {
+    private IPStatus? _status;
+
+    private IPAddress? _ip;
+
+    private long? _latency;
+
+    private string? _displayAddress;
+
+    internal readonly string _displayLatency;
+
     public string Source { get; }
 
     public string Destination { get; }
 
-    public IPAddress? Address { get; }
+    public IPAddress? Address
+    {
+        get => _ip ??= Status is IPStatus.Success ? Reply?.Address : null;
+    }
 
-    public string DisplayAddress { get; }
+    public string DisplayAddress
+    {
+        get => _displayAddress ??= Address?.ToString() ?? "*";
+    }
 
-    public long Latency { get; }
+    public long Latency
+    {
+        get => _latency ??= Reply?.RoundtripTime ?? 0;
+    }
 
-    public IPStatus Status { get; }
+    public IPStatus Status
+    {
+        get => _status ??= Reply?.Status ?? IPStatus.TimedOut;
+    }
 
     public DnsResult? DnsResult { get; }
 
@@ -33,10 +55,7 @@ public sealed class PingResult
         Destination = destination;
         DnsResult = dns;
         Reply = reply;
-        Status = reply?.Status ?? IPStatus.TimedOut;
-        Address = Status is IPStatus.Success ? reply?.Address : null;
-        Latency = reply?.RoundtripTime ?? 0;
-        DisplayAddress = Address?.ToString() ?? "*";
+        _displayLatency = Status is IPStatus.Success ? $"{Latency} ms" : "*";
     }
 
     internal static async Task<PingResult> CreateAsync(

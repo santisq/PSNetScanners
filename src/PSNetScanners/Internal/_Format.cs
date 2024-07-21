@@ -9,6 +9,5 @@ namespace PSNetScanners.Internal;
 public static class _Format
 {
     [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
-    public static string FormatLatency(PingResult pingResult) =>
-        string.Format("{0} ms", pingResult.Latency);
+    public static string GetFormattedLatency(PingResult pingResult) => pingResult._displayLatency;
 }
