@@ -2,7 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace PSNetScanners;
+namespace PSNetScanners.Abstractions;
 
 internal abstract class WorkerBase<TInput, TOutput, TResult>(int throttle, Cancellation cancellation)
     : WorkerBase(throttle, cancellation)

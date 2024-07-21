@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Management.Automation;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
+using PSNetScanners.Abstractions;
 
 namespace PSNetScanners;
 

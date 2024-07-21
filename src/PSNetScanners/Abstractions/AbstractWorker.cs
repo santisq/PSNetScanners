@@ -3,7 +3,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace PSNetScanners;
+namespace PSNetScanners.Abstractions;
 
 internal abstract class WorkerBase(int throttle, Cancellation cancellation)
     : IDisposable
