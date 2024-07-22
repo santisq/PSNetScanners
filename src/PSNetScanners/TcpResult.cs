@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -6,9 +7,13 @@ namespace PSNetScanners;
 
 public sealed class TcpResult
 {
+    internal readonly string? _clientString;
+
     public string Source { get; }
 
     public string Destination { get; }
+
+    public EndPoint? Client { get; }
 
     public int Port { get; }
 
@@ -19,15 +24,20 @@ public sealed class TcpResult
     private TcpResult(
         TcpInput input,
         TcpStatus status,
-        Exception? details = null)
+        Exception? details = null,
+        EndPoint? client = null)
     {
         (Source, Destination, Port) = input;
         Status = status;
         Details = details;
+        Client = client;
+        _clientString = client is IPEndPoint ip
+            ? ip.Address.ToString()
+            : client?.ToString();
     }
 
-    private static TcpResult CreateSuccess(TcpInput input) =>
-        new(input, TcpStatus.Opened);
+    private static TcpResult CreateSuccess(TcpInput input, EndPoint client) =>
+        new(input, TcpStatus.Opened, client: client);
 
     private static TcpResult CreateTimeout(TcpInput input) =>
             new(input, TcpStatus.TimedOut, new TimeoutException());
@@ -52,7 +62,7 @@ public sealed class TcpResult
             if (result == tcpTask)
             {
                 await tcpTask;
-                return CreateSuccess(input);
+                return CreateSuccess(input, tcp.Client.RemoteEndPoint);
             }
 
             return CreateTimeout(input);

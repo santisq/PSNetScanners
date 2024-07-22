@@ -10,4 +10,7 @@ public static class _Format
 {
     [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
     public static string GetFormattedLatency(PingResult pingResult) => pingResult._displayLatency;
+
+    [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
+    public static string? GetClient(TcpResult tcp) => tcp._clientString;
 }

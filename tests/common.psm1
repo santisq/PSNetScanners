@@ -13,6 +13,7 @@ amazon.com,80
 google.com,443
 cisco.com,443
 amazon.com,443
+github.com,443
 google.com,389
 cisco.com,389
 amazon.com,389

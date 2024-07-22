@@ -52,11 +52,11 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
             foreach (string address in Target)
             {
                 _worker.Enqueue(address);
-            }
 
-            while (_worker.TryTake(out Output data))
-            {
-                Process(data);
+                if (_worker.TryTake(out Output data))
+                {
+                    Process(data);
+                }
             }
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
