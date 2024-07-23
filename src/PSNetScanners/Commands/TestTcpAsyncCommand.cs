@@ -25,7 +25,7 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
     {
         _worker = new TcpWorker(
             throttle: ThrottleLimit,
-            timeout: ConnectionTimeout ?? 4000);
+            timeout: ConnectionTimeout);
     }
 
     protected override void ProcessRecord()

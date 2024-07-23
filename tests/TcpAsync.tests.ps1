@@ -81,7 +81,18 @@ Describe TestPingAsyncCommand {
             $result |
                 Where-Object Status -EQ TimedOut |
                 ForEach-Object Details |
-                Should -BeOfType ([System.TimeoutException])
+                Should -BeOfType ([System.Net.Sockets.SocketException])
+        }
+    }
+
+    Context 'Formatting' {
+        BeforeAll {
+            $tcp = Test-TcpAsync github.com 80
+            $tcp | Out-Null
+        }
+
+        It 'Gets IPEndpoint IPAddress' {
+            [PSNetScanners.Internal._Format]::GetClient($tcp) | Should -Not -BeNullOrEmpty
         }
     }
 }

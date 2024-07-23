@@ -40,7 +40,7 @@ public sealed class TcpResult
         new(input, TcpStatus.Opened, client: client);
 
     private static TcpResult CreateTimeout(TcpInput input) =>
-            new(input, TcpStatus.TimedOut, new TimeoutException());
+            new(input, TcpStatus.TimedOut, new SocketException(10060));
 
     private static TcpResult CreateError(TcpInput input, Exception exception) =>
         new(input, TcpStatus.Closed, exception);

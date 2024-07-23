@@ -35,7 +35,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
         {
             PingOptions = new PingOptions(Ttl, DontFragment.IsPresent),
             Buffer = Encoding.ASCII.GetBytes(new string('A', BufferSize)),
-            TaskTimeout = ConnectionTimeout ?? 4000,
+            TaskTimeout = ConnectionTimeout,
             ThrottleLimit = ThrottleLimit,
             ResolveDns = ResolveDns.IsPresent
         };

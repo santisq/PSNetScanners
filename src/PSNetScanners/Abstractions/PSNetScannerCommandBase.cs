@@ -25,7 +25,7 @@ public abstract class PSNetScannerCommandBase : PSCmdlet
     [Parameter]
     [ValidateRange(1, int.MaxValue)]
     [Alias(["timeout", "to", "ct"])]
-    public int? ConnectionTimeout { get; set; }
+    public int ConnectionTimeout { get; set; } = 4000;
 
     internal void Process(Output output)
     {
