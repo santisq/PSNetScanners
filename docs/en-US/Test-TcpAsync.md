@@ -24,7 +24,7 @@ Test-TcpAsync
 
 ## DESCRIPTION
 
-`Test-TcpAsync` is a PowerShell cmdlet that tests TCP connectivity in parallel using [`TcpClient.ConnectAsync` Method](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.connectasync). In essence, it's like `Test-NetConnect -Port` but faster.
+`Test-TcpAsync` is a PowerShell cmdlet that tests TCP connectivity in parallel using [`TcpClient.ConnectAsync` Method](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.connectasync). In essence, it's like `Test-NetConnection` with `-Port` but faster.
 
 ## EXAMPLES
 
@@ -154,7 +154,9 @@ Specifies a timeout __in milliseconds__ for each async task.
 
 > [!NOTE]
 >
-> - If a task is not completed during this timeout, the status will be `[PSNetScanners.TcpStatus]::TimedOut`, else, if the task does not complete for the maximum timeout of [`TcpClient`](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient), the status will be `[PSNetScanners.TcpStatus]::Closed`.
+> - If a task is not completed after this timeout, the status will be `[PSNetScanners.TcpStatus]::TimedOut`.
+> - If your `-ConnectionTimeout` is greater than the maximum timeout of [`TcpClient`](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient) and the connection fails, the status will be `[PSNetScanners.TcpStatus]::Closed`.
+> - In both cases of a connectivity failure, the `.Details` property will be populated with a `SocketException`.
 > - The default value for this parameter is `4000` (4 seconds).
 
 ```yaml
