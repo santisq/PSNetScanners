@@ -35,10 +35,10 @@ PS ..\> Test-TcpAsync google.com 20, 25, 80, 443
 
 Source           Destination      Client             Port Status
 ------           -----------      ------             ---- ------
-DESKTOP-1234567  google.com       142.251.134.14       80 Opened
-DESKTOP-1234567  google.com       142.251.134.14      443 Opened
-DESKTOP-1234567  google.com                            20 TimedOut
-DESKTOP-1234567  google.com                            25 TimedOut
+DESKTOP-1111111  google.com       142.251.134.14       80 Opened
+DESKTOP-1111111  google.com       142.251.134.14      443 Opened
+DESKTOP-1111111  google.com                            20 TimedOut
+DESKTOP-1111111  google.com                            25 TimedOut
 ```
 
 ### Example 2: Test TCP connectivity on multiple ports for multiple hosts
@@ -48,14 +48,14 @@ PS ..\> Test-TcpAsync google.com, github.com 20, 25, 80, 443
 
 Source           Destination      Client             Port Status
 ------           -----------      ------             ---- ------
-DESKTOP-1234567  google.com       142.251.134.14      443 Opened
-DESKTOP-1234567  google.com       142.251.134.14       80 Opened
-DESKTOP-1234567  github.com       20.201.28.151        80 Opened
-DESKTOP-1234567  github.com       20.201.28.151       443 Opened
-DESKTOP-1234567  google.com                            20 TimedOut
-DESKTOP-1234567  google.com                            25 TimedOut
-DESKTOP-1234567  github.com                            20 TimedOut
-DESKTOP-1234567  github.com                            25 TimedOut
+DESKTOP-1111111  google.com       142.251.134.14      443 Opened
+DESKTOP-1111111  google.com       142.251.134.14       80 Opened
+DESKTOP-1111111  github.com       20.201.28.151        80 Opened
+DESKTOP-1111111  github.com       20.201.28.151       443 Opened
+DESKTOP-1111111  google.com                            20 TimedOut
+DESKTOP-1111111  google.com                            25 TimedOut
+DESKTOP-1111111  github.com                            20 TimedOut
+DESKTOP-1111111  github.com                            25 TimedOut
 ```
 
 ### Example 3: Specify a timeout for TCP connectivity
@@ -66,8 +66,8 @@ PS ..\> $result
 
 Source           Destination      Client             Port Status
 ------           -----------      ------             ---- ------
-DESKTOP-1234567  github.com       20.201.28.151        80 Opened
-DESKTOP-1234567  github.com                            20 Closed
+DESKTOP-1111111  github.com       20.201.28.151        80 Opened
+DESKTOP-1111111  github.com                            20 Closed
 
 PS ..\> $result.Details
 
@@ -100,14 +100,14 @@ PS ..\> Import-Csv targets.csv | Test-TcpAsync
 
 Source           Destination      Client             Port Status
 ------           -----------      ------             ---- ------
-DESKTOP-1234567  google.com       142.251.133.206      80 Opened
-DESKTOP-1234567  google.com       142.251.133.206     443 Opened
-DESKTOP-1234567  github.com       20.201.28.151       443 Opened
-DESKTOP-1234567  github.com       20.201.28.151        80 Opened
-DESKTOP-1234567  amazon.com       52.94.236.248       443 Opened
-DESKTOP-1234567  cisco.com        72.163.4.185        443 Opened
-DESKTOP-1234567  cisco.com        72.163.4.185         80 Opened
-DESKTOP-1234567  amazon.com       52.94.236.248        80 Opened
+DESKTOP-1111111  google.com       142.251.133.206      80 Opened
+DESKTOP-1111111  google.com       142.251.133.206     443 Opened
+DESKTOP-1111111  github.com       20.201.28.151       443 Opened
+DESKTOP-1111111  github.com       20.201.28.151        80 Opened
+DESKTOP-1111111  amazon.com       52.94.236.248       443 Opened
+DESKTOP-1111111  cisco.com        72.163.4.185        443 Opened
+DESKTOP-1111111  cisco.com        72.163.4.185         80 Opened
+DESKTOP-1111111  amazon.com       52.94.236.248        80 Opened
 ```
 
 > [!TIP]

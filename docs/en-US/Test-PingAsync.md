@@ -37,8 +37,8 @@ Test-PingAsync google.com, github.com
 
 Source           Destination      Address             Latency Status       DnsResult
 ------           -----------      -------             ------- ------       ---------
-DESKTOP-9HJU1AK  google.com       142.251.133.206        8 ms Success
-DESKTOP-9HJU1AK  github.com       20.201.28.151         37 ms Success
+DESKTOP-1111111  google.com       142.251.133.206        8 ms Success
+DESKTOP-1111111  github.com       20.201.28.151         37 ms Success
 ```
 
 ### Example 2: Attempt to resolve DNS name for multiple hosts
@@ -49,9 +49,9 @@ PS ..\PSNetScanners> $result
 
 Source           Destination      Address             Latency Status       DnsResult
 ------           -----------      -------             ------- ------       ---------
-DESKTOP-9HJU1AK  8.8.8.8          8.8.8.8                8 ms Success      dns.google
-DESKTOP-9HJU1AK  8.8.4.4          8.8.4.4                8 ms Success      dns.google
-DESKTOP-9HJU1AK  1.1.1.1          1.1.1.1                8 ms Success      one.one.one.one
+DESKTOP-1111111  8.8.8.8          8.8.8.8                8 ms Success      dns.google
+DESKTOP-1111111  8.8.4.4          8.8.4.4                8 ms Success      dns.google
+DESKTOP-1111111  1.1.1.1          1.1.1.1                8 ms Success      one.one.one.one
 
 PS ..\PSNetScanners> $result[0].DnsResult
 
@@ -68,19 +68,19 @@ PS ..\PSNetScanners> 1..20 | ForEach-Object { "192.168.1.$_" } | Test-PingAsync 
 
 Source           Destination      Address             Latency Status       DnsResult
 ------           -----------      -------             ------- ------       ---------
-DESKTOP-9HJU1AK  192.168.1.1      192.168.1.1            0 ms Success
-DESKTOP-9HJU1AK  192.168.1.5      192.168.1.5            0 ms Success
-DESKTOP-9HJU1AK  192.168.1.14     192.168.1.14           3 ms Success
-DESKTOP-9HJU1AK  192.168.1.7      192.168.1.7          137 ms Success
-DESKTOP-9HJU1AK  192.168.1.3      192.168.1.3          204 ms Success
-DESKTOP-9HJU1AK  192.168.1.2      *                         * TimedOut
-DESKTOP-9HJU1AK  192.168.1.4      *                         * TimedOut
-DESKTOP-9HJU1AK  192.168.1.6      *                         * TimedOut
-DESKTOP-9HJU1AK  192.168.1.8      *                         * TimedOut
-DESKTOP-9HJU1AK  192.168.1.9      *                         * TimedOut
-DESKTOP-9HJU1AK  192.168.1.10     *                         * TimedOut
-DESKTOP-9HJU1AK  192.168.1.11     *                         * TimedOut
-DESKTOP-9HJU1AK  192.168.1.12     *                         * TimedOut
+DESKTOP-1111111  192.168.1.1      192.168.1.1            0 ms Success
+DESKTOP-1111111  192.168.1.5      192.168.1.5            0 ms Success
+DESKTOP-1111111  192.168.1.14     192.168.1.14           3 ms Success
+DESKTOP-1111111  192.168.1.7      192.168.1.7          137 ms Success
+DESKTOP-1111111  192.168.1.3      192.168.1.3          204 ms Success
+DESKTOP-1111111  192.168.1.2      *                         * TimedOut
+DESKTOP-1111111  192.168.1.4      *                         * TimedOut
+DESKTOP-1111111  192.168.1.6      *                         * TimedOut
+DESKTOP-1111111  192.168.1.8      *                         * TimedOut
+DESKTOP-1111111  192.168.1.9      *                         * TimedOut
+DESKTOP-1111111  192.168.1.10     *                         * TimedOut
+DESKTOP-1111111  192.168.1.11     *                         * TimedOut
+DESKTOP-1111111  192.168.1.12     *                         * TimedOut
 ...
 ...
 ```
