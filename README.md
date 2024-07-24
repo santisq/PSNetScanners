@@ -10,7 +10,7 @@
 
 </div>
 
-PSNetScanners is a PowerShell Module that includes two cmdlets using async techniques for ICMP and TCP scanning. Essentially, like built-in `Test-Connection` or `Test-NetConnection` with a few less options but much faster.
+PSNetScanners is a PowerShell Module that includes two cmdlets using async techniques for ICMP and TCP scanning. Essentially, like built-in cmdlets `Test-Connection` or `Test-NetConnection` with a few less options but much faster.
 
 ## Documentation
 
