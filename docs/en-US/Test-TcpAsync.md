@@ -118,7 +118,7 @@ DESKTOP-1234567  amazon.com       52.94.236.248        80 Opened
 
 ### -Target
 
-Specifies one or many remote computers, Uris or Ip addresses to test connectivity.
+Specifies one or more remote computers, Uris or Ip addresses to test connectivity.
 
 ```yaml
 Type: String[]
