@@ -9,7 +9,7 @@ schema: 2.0.0
 
 ## SYNOPSIS
 
-{{ Fill in the Synopsis }}
+Parallel ICMP scanner.
 
 ## SYNTAX
 
@@ -26,7 +26,7 @@ Test-PingAsync
 
 ## DESCRIPTION
 
-{{ Fill in the Description }}
+`Test-PingAsync` is a PowerShell cmdlet that ICMP echo requests in parallel using [`Ping.SendPingAsync` Method](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping.sendpingasync). In essence, it's like `Test-Connection` with less options but faster.
 
 ## EXAMPLES
 
@@ -42,7 +42,11 @@ PS C:\> {{ Add example code here }}
 
 ### -BufferSize
 
-{{ Fill BufferSize Description }}
+Specifies the size, in bytes, of the buffer sent with this command.
+
+> [!NOTE]
+>
+> The default value is 32.
 
 ```yaml
 Type: Int32
@@ -51,14 +55,19 @@ Aliases: bfs
 
 Required: False
 Position: Named
-Default value: None
+Default value: 32
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
 ### -ConnectionTimeout
 
-{{ Fill ConnectionTimeout Description }}
+Specifies a timeout __in milliseconds__ for each async task.
+
+> [!NOTE]
+>
+> - If a task is not completed after this timeout, the status will be `TimedOut`.
+> - The default value for this parameter is `4000` (4 seconds).
 
 ```yaml
 Type: Int32
@@ -74,7 +83,7 @@ Accept wildcard characters: False
 
 ### -DontFragment
 
-{{ Fill DontFragment Description }}
+This parameter sets the Don't Fragment flag in the IP header. See [`PingOptions.DontFragment` Property](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.pingoptions.dontfragment#system-net-networkinformation-pingoptions-dontfragment).
 
 ```yaml
 Type: SwitchParameter
@@ -90,7 +99,7 @@ Accept wildcard characters: False
 
 ### -ResolveDns
 
-{{ Fill ResolveDns Description }}
+Causes the cmdlet to attempt to resolve the DNS name of the target.
 
 ```yaml
 Type: SwitchParameter
@@ -122,7 +131,11 @@ Accept wildcard characters: False
 
 ### -ThrottleLimit
 
-{{ Fill ThrottleLimit Description }}
+Specifies the maximum number of async tasks to run in parallel.
+
+> [!NOTE]
+>
+> The default value for `-ThrottleLimit` is `50`.
 
 ```yaml
 Type: Int32
@@ -138,7 +151,7 @@ Accept wildcard characters: False
 
 ### -Ttl
 
-{{ Fill Ttl Description }}
+Sets the maximum number of hops that an ICMP request message can be sent. The default value is controlled by the operating system. The default value for Windows 10 and higher is 128 hops.
 
 ```yaml
 Type: Int32
@@ -152,25 +165,9 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -ProgressAction
-
-{{ Fill ProgressAction Description }}
-
-```yaml
-Type: ActionPreference
-Parameter Sets: (All)
-Aliases: proga
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
@@ -183,3 +180,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## NOTES
 
 ## RELATED LINKS
+
+[`Ping.SendPingAsync` Method](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping.sendpingasync)
+
+[`PingOptions.DontFragment` Property](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.pingoptions.dontfragment#system-net-networkinformation-pingoptions-dontfragment)
+
+[about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216)

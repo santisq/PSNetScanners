@@ -22,7 +22,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
     public SwitchParameter ResolveDns { get; set; }
 
     [Parameter]
-    public int Ttl { get; set; } = 128;
+    public int Ttl { get; set; }
 
     [Parameter]
     public SwitchParameter DontFragment { get; set; }
@@ -33,7 +33,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
     {
         PingAsyncOptions options = new()
         {
-            PingOptions = new PingOptions(Ttl, DontFragment.IsPresent),
+            PingOptions = new PingOptions() { DontFragment = DontFragment.IsPresent },
             Buffer = Encoding.ASCII.GetBytes(new string('A', BufferSize)),
             TaskTimeout = ConnectionTimeout,
             ThrottleLimit = ThrottleLimit,

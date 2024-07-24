@@ -9,7 +9,7 @@ schema: 2.0.0
 
 ## SYNOPSIS
 
-Parallel Tcp scanner.
+Parallel TCP scanner.
 
 ## SYNTAX
 
@@ -154,8 +154,8 @@ Specifies a timeout __in milliseconds__ for each async task.
 
 > [!NOTE]
 >
-> - If a task is not completed after this timeout, the status will be `[PSNetScanners.TcpStatus]::TimedOut`.
-> - If your `-ConnectionTimeout` is greater than the maximum timeout of [`TcpClient`](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient) and the connection fails, the status will be `[PSNetScanners.TcpStatus]::Closed`.
+> - If a task is not completed after this timeout, the status will be `TimedOut`.
+> - If your `-ConnectionTimeout` is greater than the maximum timeout of [`TcpClient`](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient) and the connection fails, the status will be `Closed`.
 > - In both cases of a connectivity failure, the `.Details` property will be populated with a `SocketException`.
 > - The default value for this parameter is `4000` (4 seconds).
 
@@ -208,3 +208,9 @@ This cmdlet supports the common parameters. For more information, see [about_Com
 ## NOTES
 
 ## RELATED LINKS
+
+[`TcpClient.ConnectAsync` Method](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.connectasync)
+
+[`TcpClient`](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient)
+
+[about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216)
