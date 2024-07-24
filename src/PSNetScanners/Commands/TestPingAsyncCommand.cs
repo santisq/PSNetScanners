@@ -22,7 +22,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
     public SwitchParameter ResolveDns { get; set; }
 
     [Parameter]
-    public int Ttl { get; set; } = 128;
+    public int Ttl { get; set; }
 
     [Parameter]
     public SwitchParameter DontFragment { get; set; }
@@ -33,9 +33,9 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
     {
         PingAsyncOptions options = new()
         {
-            PingOptions = new PingOptions(Ttl, DontFragment.IsPresent),
+            PingOptions = new PingOptions() { DontFragment = DontFragment.IsPresent },
             Buffer = Encoding.ASCII.GetBytes(new string('A', BufferSize)),
-            TaskTimeout = ConnectionTimeout ?? 4000,
+            TaskTimeout = ConnectionTimeout,
             ThrottleLimit = ThrottleLimit,
             ResolveDns = ResolveDns.IsPresent
         };
@@ -52,11 +52,11 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
             foreach (string address in Target)
             {
                 _worker.Enqueue(address);
-            }
 
-            while (_worker.TryTake(out Output data))
-            {
-                Process(data);
+                if (_worker.TryTake(out Output data))
+                {
+                    Process(data);
+                }
             }
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)

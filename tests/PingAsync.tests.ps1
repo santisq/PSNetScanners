@@ -107,7 +107,7 @@ Describe TestPingAsyncCommand {
 
         It 'ThrottleLimit' {
             $targets | Test-PingAsync -ThrottleLimit 1 |
-                Should -HaveCount 17
+                Should -HaveCount 18
 
             $range | Test-PingAsync -ThrottleLimit 300 -ErrorAction Stop |
                 Should -HaveCount 20

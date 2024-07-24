@@ -56,19 +56,24 @@
         <TableHeaders>
           <TableColumnHeader>
             <Label>Source</Label>
+            <Width>16</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Destination</Label>
+            <Width>16</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Address</Label>
+            <Width>15</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Latency</Label>
             <Alignment>Right</Alignment>
+            <Width>11</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Status</Label>
+            <Width>12</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>DnsResult</Label>
@@ -109,15 +114,20 @@
         <TableHeaders>
           <TableColumnHeader>
             <Label>Source</Label>
-            <Width>17</Width>
+            <Width>16</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Destination</Label>
-            <Width>17</Width>
+            <Width>16</Width>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Client</Label>
+            <Width>15</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Port</Label>
             <Width>7</Width>
+            <Alignment>Right</Alignment>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Status</Label>
@@ -132,6 +142,9 @@
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>Destination</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <ScriptBlock> [PSNetScanners.Internal._Format]::GetClient($_) </ScriptBlock>
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>Port</PropertyName>

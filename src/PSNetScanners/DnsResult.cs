@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 
 namespace PSNetScanners;
 
@@ -37,7 +38,7 @@ public class DnsFailure : DnsResult
     }
 
     internal static DnsFailure CreateTimeout() =>
-        new(DnsStatus.Timeout, new TimeoutException());
+        new(DnsStatus.Timeout, new SocketException(11001));
 
     public override string ToString() => Exception.Message;
 }

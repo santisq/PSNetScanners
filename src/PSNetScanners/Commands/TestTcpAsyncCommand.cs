@@ -25,7 +25,7 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
     {
         _worker = new TcpWorker(
             throttle: ThrottleLimit,
-            timeout: ConnectionTimeout ?? 4000);
+            timeout: ConnectionTimeout);
     }
 
     protected override void ProcessRecord()
@@ -42,12 +42,12 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
                         source: _worker.Source,
                         target: address,
                         port: port));
-                }
-            }
 
-            while (_worker.TryTake(out Output data))
-            {
-                Process(data);
+                    if (_worker.TryTake(out Output data))
+                    {
+                        Process(data);
+                    }
+                }
             }
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)

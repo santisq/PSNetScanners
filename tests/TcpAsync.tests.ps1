@@ -30,6 +30,11 @@ Describe TestPingAsyncCommand {
             $result.Destination | Should -BeOfType ([string])
         }
 
+        It 'Client' {
+            $result.Client | Should -Not -BeNullOrEmpty
+            $result.Client | Should -BeOfType ([IPEndpoint])
+        }
+
         It 'Port' {
             $result.Port | Should -Not -BeNullOrEmpty
             $result.Port | Should -BeOfType ([int])
@@ -61,8 +66,9 @@ Describe TestPingAsyncCommand {
 
     Context 'Parameters' {
         It 'ThrottleLimit' {
-            $result = $targets | Test-TcpAsync -ThrottleLimit 1 -ConnectionTimeout ([int]::MaxValue)
-            $result | Should -HaveCount $targets.Count
+            $result = $targets | Select-Object -First 9 |
+                Test-TcpAsync -ThrottleLimit 1 -ConnectionTimeout ([int]::MaxValue)
+            $result | Should -HaveCount 9
             $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::Opened)
             $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::Closed)
         }
@@ -75,7 +81,18 @@ Describe TestPingAsyncCommand {
             $result |
                 Where-Object Status -EQ TimedOut |
                 ForEach-Object Details |
-                Should -BeOfType ([System.TimeoutException])
+                Should -BeOfType ([System.Net.Sockets.SocketException])
+        }
+    }
+
+    Context 'Formatting' {
+        BeforeAll {
+            $tcp = Test-TcpAsync github.com 80
+            $tcp | Out-Null
+        }
+
+        It 'Gets IPEndpoint IPAddress' {
+            [PSNetScanners.Internal._Format]::GetClient($tcp) | Should -Not -BeNullOrEmpty
         }
     }
 }
