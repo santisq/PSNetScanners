@@ -33,7 +33,7 @@ Test-PingAsync
 ### Example 1: Send parallel echo-requests to remote hosts
 
 ```powershell
-Test-PingAsync google.com, github.com
+PS ..\> Test-PingAsync google.com, github.com
 
 Source           Destination      Address             Latency Status       DnsResult
 ------           -----------      -------             ------- ------       ---------
@@ -44,8 +44,8 @@ DESKTOP-1111111  github.com       20.201.28.151         37 ms Success
 ### Example 2: Attempt to resolve DNS name for multiple hosts
 
 ```powershell
-PS ..\PSNetScanners> $result = Test-PingAsync 8.8.8.8, 8.8.4.4, 1.1.1.1 -ResolveDns
-PS ..\PSNetScanners> $result
+PS ..\> $result = Test-PingAsync 8.8.8.8, 8.8.4.4, 1.1.1.1 -ResolveDns
+PS ..\> $result
 
 Source           Destination      Address             Latency Status       DnsResult
 ------           -----------      -------             ------- ------       ---------
@@ -53,7 +53,7 @@ DESKTOP-1111111  8.8.8.8          8.8.8.8                8 ms Success      dns.g
 DESKTOP-1111111  8.8.4.4          8.8.4.4                8 ms Success      dns.google
 DESKTOP-1111111  1.1.1.1          1.1.1.1                8 ms Success      one.one.one.one
 
-PS ..\PSNetScanners> $result[0].DnsResult
+PS ..\> $result[0].DnsResult
 
 Status      : Success
 HostName    : dns.google
@@ -64,7 +64,7 @@ Aliases     : {}
 ### Example 3: Specify a connection timeout for each request
 
 ```powershell
-PS ..\PSNetScanners> 1..20 | ForEach-Object { "192.168.1.$_" } | Test-PingAsync -ConnectionTimeout 200
+PS ..\> 1..20 | ForEach-Object { "192.168.1.$_" } | Test-PingAsync -ConnectionTimeout 200
 
 Source           Destination      Address             Latency Status       DnsResult
 ------           -----------      -------             ------- ------       ---------
