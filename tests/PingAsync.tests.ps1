@@ -1,28 +1,24 @@
 ﻿using namespace System.IO
 
-$moduleName = (Get-Item ([Path]::Combine($PSScriptRoot, '..', 'module', '*.psd1'))).BaseName
-$manifestPath = [Path]::Combine($PSScriptRoot, '..', 'output', $moduleName)
-
-Import-Module $manifestPath
 Import-Module ([Path]::Combine($PSScriptRoot, 'common.psm1'))
+Import-Module $manifestPath
 
 Describe TestPingAsyncCommand {
     Context 'Output Streams' {
         It 'Success' {
-            Test-PingAsync -Target github.com |
-                Should -BeOfType ([PSNetScanners.PingResult])
+            Test-PingAsync -Target github.com | Should -BeOfType ([PSNetScanners.Ping.PingResult])
         }
 
         It 'Error' {
             { Test-PingAsync -Target "$([guid]::NewGuid()).com" -ErrorAction Stop } |
-                Should -Throw -ExceptionType ([System.Net.Sockets.SocketException])
+                Should -Throw -ExceptionType ([PSNetScanners.Ping.PingResultException])
         }
     }
 
     Context 'DnsResult Type' {
         It 'DnsSuccess' {
             $result = Test-PingAsync 8.8.8.8 -ResolveDns
-            $result.DnsResult | Should -BeOfType ([PSNetScanners.DnsSuccess])
+            $result.DnsResult | Should -BeOfType ([PSNetScanners.Dns.DnsSuccess])
             $result.DnsResult.Status | Should -Be ([PSNetScanners.DnsStatus]::Success)
             $result.DnsResult.AddressList | Should -BeOfType ([ipaddress])
             $result.DnsResult.Aliases.Count | Should -BeGreaterOrEqual 0
@@ -33,7 +29,7 @@ Describe TestPingAsyncCommand {
                 Test-PingAsync -ResolveDns |
                 Where-Object { $_.DnsResult.Status -eq [PSNetScanners.DnsStatus]::Error } |
                 Select-Object -First 1
-            $result.DnsResult | Should -BeOfType ([PSNetScanners.DnsFailure])
+            $result.DnsResult | Should -BeOfType ([PSNetScanners.Dns.DnsFailure])
             $result.DnsResult.Status | Should -Be ([PSNetScanners.DnsStatus]::Error)
         }
     }

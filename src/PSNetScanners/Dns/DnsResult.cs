@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace PSNetScanners;
+namespace PSNetScanners.Dns;
 
 public abstract class DnsResult(DnsStatus status)
 {

@@ -69,7 +69,7 @@ Source           Destination      Client             Port Status
 DESKTOP-1111111  github.com       20.201.28.151        80 Opened
 DESKTOP-1111111  github.com                            20 Closed
 
-PS ..\> $result.Details
+PS ..\> $result.Error
 
 Message         : A connection attempt failed because the connected party did not properly respond after a period of
                   time, or established connection failed because connected host has failed to respond.
@@ -156,7 +156,7 @@ Specifies a timeout __in milliseconds__ for each async task.
 >
 > - If a task is not completed after this timeout, the status will be `TimedOut`.
 > - If your `-ConnectionTimeout` is greater than the maximum timeout of [`TcpClient`](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient) and the connection fails, the status will be `Closed`.
-> - In both cases of a connectivity failure, the `.Details` property will be populated with a `SocketException`.
+> - In both cases of a connectivity failure, the `.Error` property will be populated with a `SocketException`.
 > - The default value for this parameter is `4000` (4 seconds).
 
 ```yaml

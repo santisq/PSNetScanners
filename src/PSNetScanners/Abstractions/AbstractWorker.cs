@@ -1,30 +1,26 @@
 using System;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PSNetScanners.Abstractions;
 
-internal abstract class WorkerBase(int throttle, Cancellation cancellation)
-    : IDisposable
+internal abstract class WorkerBase : IDisposable
 {
-    protected CancellationToken Token { get => _cancellation.Token; }
+    internal string Source { get; } = System.Net.Dns.GetHostName();
 
-    protected abstract Task Worker { get; }
+    protected CancellationToken Token { get => Cancellation.Token; }
 
-    internal string Source { get; } = Dns.GetHostName();
+    protected Task Worker { get; }
 
-    protected readonly Cancellation _cancellation = cancellation;
-
-    protected readonly int _throttle = throttle;
-
-    protected bool _disposed;
+    protected Cancellation Cancellation { get; } = new();
 
     protected abstract Task Start();
 
+    protected WorkerBase() => Worker = Task.Run(Start, Token);
+
     internal void Cancel()
     {
-        _cancellation.Cancel();
+        Cancellation.Cancel();
         Wait();
     }
 
@@ -35,6 +31,7 @@ internal abstract class WorkerBase(int throttle, Cancellation cancellation)
     public void Dispose()
     {
         Dispose(true);
+        Cancellation.Dispose();
         GC.SuppressFinalize(this);
     }
 }

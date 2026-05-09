@@ -1,16 +1,15 @@
-﻿using System;
-using System.Management.Automation;
+﻿using System.Management.Automation;
 using System.Net.NetworkInformation;
 using System.Text;
 using PSNetScanners.Abstractions;
-using PSNetScanners.Dbg;
+using PSNetScanners.Ping;
 
 namespace PSNetScanners.Commands;
 
 [Cmdlet(VerbsDiagnostic.Test, "PingAsync")]
 [OutputType(typeof(PingResult))]
 [Alias("pingasync")]
-public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
+public sealed class TestPingAsyncCommand : PSNetScannerCommandBase<string>
 {
     [Parameter]
     [ValidateRange(1, 65500)]
@@ -27,9 +26,12 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
     [Parameter]
     public SwitchParameter DontFragment { get; set; }
 
-    private PingWorker? _worker;
+    protected override void EnqueueAllTasks()
+    {
+        foreach (string address in Target) Enqueue(address);
+    }
 
-    protected override void BeginProcessing()
+    internal override IWorker<string> CreateWorker()
     {
         PingAsyncOptions options = new()
         {
@@ -40,57 +42,6 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase, IDisposable
             ResolveDns = ResolveDns.IsPresent
         };
 
-        _worker = new PingWorker(options);
-    }
-
-    protected override void ProcessRecord()
-    {
-        Debug.Assert(_worker is not null);
-
-        try
-        {
-            foreach (string address in Target)
-            {
-                _worker.Enqueue(address);
-
-                if (_worker.TryTake(out Output data))
-                {
-                    Process(data);
-                }
-            }
-        }
-        catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
-        {
-            _worker.Cancel();
-            throw;
-        }
-    }
-
-    protected override void EndProcessing()
-    {
-        Debug.Assert(_worker is not null);
-
-        try
-        {
-            _worker.CompleteAdding();
-            foreach (Output data in _worker.GetOutput())
-            {
-                Process(data);
-            }
-            _worker.Wait();
-        }
-        catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
-        {
-            _worker.Cancel();
-            throw;
-        }
-    }
-
-    protected override void StopProcessing() => _worker?.Cancel();
-
-    public void Dispose()
-    {
-        _worker?.Dispose();
-        GC.SuppressFinalize(this);
+        return new PingWorker(options);
     }
 }

@@ -4,7 +4,7 @@
     <View>
       <Name>DnsViewSuccess</Name>
       <ViewSelectedBy>
-        <TypeName>PSNetScanners.DnsSuccess</TypeName>
+        <TypeName>PSNetScanners.Dns.DnsSuccess</TypeName>
       </ViewSelectedBy>
       <ListControl>
         <ListEntries>
@@ -30,7 +30,7 @@
     <View>
       <Name>DnsViewFailure</Name>
       <ViewSelectedBy>
-        <TypeName>PSNetScanners.DnsFailure</TypeName>
+        <TypeName>PSNetScanners.Dns.DnsFailure</TypeName>
       </ViewSelectedBy>
       <ListControl>
         <ListEntries>
@@ -50,7 +50,7 @@
     <View>
       <Name>PingAsyncView</Name>
       <ViewSelectedBy>
-        <TypeName>PSNetScanners.PingResult</TypeName>
+        <TypeName>PSNetScanners.Ping.PingResult</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>
@@ -108,7 +108,7 @@
     <View>
       <Name>TcpAsyncView</Name>
       <ViewSelectedBy>
-        <TypeName>PSNetScanners.TcpResult</TypeName>
+        <TypeName>PSNetScanners.Tcp.TcpResult</TypeName>
       </ViewSelectedBy>
       <TableControl>
         <TableHeaders>

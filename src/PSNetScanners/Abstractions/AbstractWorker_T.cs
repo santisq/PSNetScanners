@@ -4,9 +4,10 @@ using System.Threading.Tasks;
 
 namespace PSNetScanners.Abstractions;
 
-internal abstract class WorkerBase<TInput, TResult>(int throttle, Cancellation cancellation)
-    : WorkerBase(throttle, cancellation)
+internal abstract class WorkerBase<TInput, TResult>(int throttle) : WorkerBase, IWorker<TInput>
 {
+    private bool _disposed;
+
     protected virtual BlockingCollection<TInput> InputQueue { get; } = [];
 
     protected virtual BlockingCollection<Output> OutputQueue { get; } = [];
@@ -19,21 +20,56 @@ internal abstract class WorkerBase<TInput, TResult>(int throttle, Cancellation c
 
     internal bool TryTake(out Output result) => OutputQueue.TryTake(out result, 0, Token);
 
-    protected async Task ProcessOneAsync(
-        List<Task<TResult>> tasks)
+    string IWorker<TInput>.Source { get => Source; }
+
+    void IWorker<TInput>.Enqueue(TInput input) => Enqueue(input);
+
+    bool IWorker<TInput>.TryTake(out Output result) => TryTake(out result);
+
+    void IWorker<TInput>.Cancel() => Cancel();
+
+    void IWorker<TInput>.CompleteAdding() => CompleteAdding();
+
+    void IWorker<TInput>.Wait() => Wait();
+
+    IEnumerable<Output> IWorker<TInput>.GetOutput() => GetOutput();
+
+    protected override async Task Start()
     {
-        Task<TResult> task = await Task.WhenAny(tasks);
+        List<Task<TResult>> tasks = [];
+
+        while (!InputQueue.IsCompleted)
+        {
+            if (InputQueue.TryTake(out TInput input, 0, Token))
+            {
+                tasks.Add(CreateAsync(input));
+                if (tasks.Count == throttle)
+                    await ProcessOneAsync(tasks).NoContext();
+            }
+        }
+
+        while (tasks.Count > 0)
+            await ProcessOneAsync(tasks).NoContext();
+
+        OutputQueue.CompleteAdding();
+    }
+
+    private async Task ProcessOneAsync(List<Task<TResult>> tasks)
+    {
+        Task<TResult> task = await Task.WhenAny(tasks).NoContext();
         tasks.Remove(task);
-        await ProcessTaskAsync(task);
+        await ProcessTaskAsync(task).NoContext();
     }
 
     protected abstract Task ProcessTaskAsync(Task<TResult> task);
 
+    protected abstract Task<TResult> CreateAsync(TInput destination);
+
     protected override void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (_disposed) return;
+        if (disposing)
         {
-            _cancellation.Cancel();
             InputQueue.Dispose();
             OutputQueue.Dispose();
         }

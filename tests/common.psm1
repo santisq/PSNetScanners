@@ -26,4 +26,8 @@ cisco.com,636
 amazon.com,636
 '@ | ConvertFrom-Csv
 
+$moduleName = (Get-Item ([Path]::Combine($PSScriptRoot, '..', 'module', '*.psd1'))).BaseName
+$manifestPath = [Path]::Combine($PSScriptRoot, '..', 'output', $moduleName)
+$manifestPath, $targets | Out-Null
+
 Export-ModuleMember -Function * -Variable *
