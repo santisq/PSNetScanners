@@ -66,6 +66,10 @@ Describe TestPingAsyncCommand {
         It 'Latency' {
             $ping.Latency | Should -BeOfType ([long])
         }
+
+        It 'Success' {
+            $ping.Success | Should -BeOfType ([bool])
+        }
     }
 
     Context 'Test-PingAsync' {

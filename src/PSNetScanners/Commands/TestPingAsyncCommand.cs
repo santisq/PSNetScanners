@@ -26,7 +26,7 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase<string>
     [Parameter]
     public SwitchParameter DontFragment { get; set; }
 
-    protected override void EnqueueAllTasks()
+    protected override void EnqueueTasks()
     {
         foreach (string address in Target)
         {

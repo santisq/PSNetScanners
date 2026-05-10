@@ -18,7 +18,7 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase<TcpInput>
     [Alias("p")]
     public int[] Port { get; set; } = null!;
 
-    protected override void EnqueueAllTasks()
+    protected override void EnqueueTasks()
     {
         foreach (string address in Target)
         {

@@ -9,35 +9,35 @@ namespace PSNetScanners.Ping;
 
 public sealed class PingResult : ResultBase
 {
-    internal string LatencyAsString
-    {
-        get => field ??= Status is IPStatus.Success ? $"{Latency} ms" : "*";
-    }
+    public IPAddress? Address { get; private set; }
 
-    public IPAddress? Address
-    {
-        get => field ??= Status is IPStatus.Success ? Reply?.Address : null;
-    }
+    public string DisplayAddress { get; private set; } = "*";
 
-    public string DisplayAddress
-    {
-        get => field ??= Address?.ToString() ?? "*";
-    }
+    public long Latency { get; private set; }
 
-    public long? Latency
-    {
-        get => field ??= Reply?.RoundtripTime ?? 0;
-    }
+    internal string LatencyAsString { get; private set; } = "*";
 
-    public IPStatus? Status
-    {
-        get => field ??= Reply?.Status ?? IPStatus.Unknown;
-        private set;
-    }
+    public IPStatus? Status { get; private set; } = IPStatus.Unknown;
 
     public DnsResult? DnsResult { get; private set; }
 
-    public PingReply? Reply { get; private set; }
+    public PingReply? Reply
+    {
+        get;
+        private set
+        {
+            field = value;
+            if (value is null) return;
+
+            Status = value.Status;
+            if (Status != IPStatus.Success) return;
+
+            Latency = value.RoundtripTime;
+            LatencyAsString = $"{Latency} ms";
+            Address = value.Address;
+            DisplayAddress = Address.ToString();
+        }
+    }
 
     public override bool Success { get => Status == IPStatus.Success; }
 
@@ -58,11 +58,8 @@ public sealed class PingResult : ResultBase
 
         try
         {
-            if (!resolveDns)
-            {
-                result.Reply = await pingTask.NoContext();
-                return result;
-            }
+            result.Reply = await pingTask.NoContext();
+            if (!resolveDns) return result;
 
             Task<DnsResult> dnsTask = GetDnsAsync(destination, options, cancellation);
             Task any = await Task
@@ -76,7 +73,6 @@ public sealed class PingResult : ResultBase
                 return result;
             }
 
-            result.Reply = await pingTask.NoContext();
             result.DnsResult = await dnsTask.NoContext();
         }
         catch (PingException exception)

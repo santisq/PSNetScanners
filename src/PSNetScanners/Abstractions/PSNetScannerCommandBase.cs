@@ -44,7 +44,7 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
         _worker.Enqueue(input);
     }
 
-    protected abstract void EnqueueAllTasks();
+    protected abstract void EnqueueTasks();
 
     protected override void BeginProcessing() => _worker = CreateWorker();
 
@@ -54,7 +54,7 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
 
         try
         {
-            EnqueueAllTasks();
+            EnqueueTasks();
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {

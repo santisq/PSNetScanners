@@ -41,6 +41,10 @@ Describe TestTcpAsyncCommand {
             $result.Status | Should -BeExactly ([PSNetScanners.TcpStatus]::Opened)
         }
 
+        It 'Success' {
+            $result.Success | Should -BeOfType ([bool])
+        }
+
         It 'Error' {
             $result = Test-TcpAsync -Target google.com -Port 8080 -ConnectionTimeout ([int]::MaxValue)
             $result.Error | Should -BeOfType ([System.Net.Sockets.SocketException])

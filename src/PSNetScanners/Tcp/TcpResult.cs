@@ -10,16 +10,19 @@ public sealed class TcpResult : ResultBase
 {
     private readonly static SocketException s_timeoutException = new(10060);
 
-    internal string? ClientString
-    {
-        get => field ??= Client is IPEndPoint ip
-            ? ip.Address.ToString()
-            : Client?.ToString();
-    }
+    internal string? ClientString { get; set; }
 
     public int Port { get; }
 
-    public EndPoint? Client { get; private set; }
+    public EndPoint? Client
+    {
+        get;
+        private set
+        {
+            field = value;
+            ClientString = value is IPEndPoint ip ? ip.Address.ToString() : value?.ToString();
+        }
+    }
 
     public TcpStatus Status { get; private set; } = TcpStatus.Opened;
 

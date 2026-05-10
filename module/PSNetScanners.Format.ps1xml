@@ -73,10 +73,6 @@
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Status</Label>
-            <Width>12</Width>
-          </TableColumnHeader>
-          <TableColumnHeader>
-            <Label>DnsResult</Label>
           </TableColumnHeader>
         </TableHeaders>
         <TableRowEntries>
@@ -96,9 +92,6 @@
               </TableColumnItem>
               <TableColumnItem>
                 <PropertyName>Status</PropertyName>
-              </TableColumnItem>
-              <TableColumnItem>
-                <PropertyName>DnsResult</PropertyName>
               </TableColumnItem>
             </TableColumnItems>
           </TableRowEntry>
