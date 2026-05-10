@@ -18,7 +18,7 @@ function Test-CmdletCancellation {
         [timespan] $DelayBeforeStop = '00:00:01')
 
     $iss = [initialsessionstate]::CreateDefault2()
-    $iss.ImportPSModulesFromPath($path)
+    $iss.ImportPSModulesFromPath($ModulePath)
     $ps = [powershell]::Create($iss).AddScript($Script)
 
     Measure-Command {
