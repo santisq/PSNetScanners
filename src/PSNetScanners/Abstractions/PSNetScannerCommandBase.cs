@@ -58,7 +58,7 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
-            _worker.Cancel();
+            _worker.CancelAndWait();
             throw;
         }
     }
@@ -66,7 +66,8 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
     protected void WriteCompleted()
     {
         Assert(_worker is not null);
-        while (_worker.TryTake(out object data)) WriteObject(data);
+        while (_worker.TryTake(out object data))
+            WriteObject(data);
     }
 
     protected override void EndProcessing()
@@ -76,7 +77,6 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
         try
         {
             _worker.CompleteAdding();
-
             foreach (object data in _worker.EnumerateOutput())
                 WriteObject(data);
 
@@ -84,7 +84,7 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
-            _worker.Cancel();
+            _worker.CancelAndWait();
             throw;
         }
     }
@@ -92,7 +92,7 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
     protected override void StopProcessing()
     {
         Assert(_worker is not null);
-        _worker.Cancel();
+        _worker.CancelAndWait();
     }
 
     public void Dispose()

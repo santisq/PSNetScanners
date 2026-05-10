@@ -48,9 +48,7 @@ public sealed class TcpResult : ResultBase
         try
         {
             Task tcpTask = tcp.ConnectAsync(input.Target, input.Port);
-            Task any = await Task
-                .WhenAny(tcpTask, cancellationTask, timeOutTask)
-                .NoContext();
+            Task any = await Task.WhenAny(tcpTask, cancellationTask, timeOutTask).NoContext();
 
             if (any == tcpTask)
             {
