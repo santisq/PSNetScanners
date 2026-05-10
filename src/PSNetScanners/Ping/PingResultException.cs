@@ -8,7 +8,7 @@ public sealed class PingResultException : Exception
 
     internal PingResultException(PingResult pingResult, Exception exception)
         : base(
-            $"Failed to resolve host '{pingResult.Destination}' ({exception.Message})",
+            $"Failed to resolve host '{pingResult.Destination}'. {exception.Message}",
             exception)
     {
         _context = pingResult;

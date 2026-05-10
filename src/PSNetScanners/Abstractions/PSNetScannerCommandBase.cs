@@ -46,10 +46,7 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
 
     protected abstract void EnqueueAllTasks();
 
-    protected override void BeginProcessing()
-    {
-        _worker = CreateWorker();
-    }
+    protected override void BeginProcessing() => _worker = CreateWorker();
 
     protected override void ProcessRecord()
     {
@@ -58,13 +55,18 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
         try
         {
             EnqueueAllTasks();
-            while (_worker.TryTake(out Output data)) Process(data);
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
         {
             _worker.Cancel();
             throw;
         }
+    }
+
+    protected void WriteCompleted()
+    {
+        Assert(_worker is not null);
+        while (_worker.TryTake(out object data)) WriteObject(data);
     }
 
     protected override void EndProcessing()
@@ -74,7 +76,10 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
         try
         {
             _worker.CompleteAdding();
-            foreach (Output data in _worker.GetOutput()) Process(data);
+
+            foreach (object data in _worker.EnumerateOutput())
+                WriteObject(data);
+
             _worker.Wait();
         }
         catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
@@ -88,20 +93,6 @@ public abstract class PSNetScannerCommandBase<TInput> : PSCmdlet, IDisposable
     {
         Assert(_worker is not null);
         _worker.Cancel();
-    }
-
-    internal void Process(Output output)
-    {
-        switch (output.Type)
-        {
-            case Type.Success:
-                WriteObject(output.Data);
-                break;
-
-            case Type.Error:
-                WriteError((ErrorRecord)output.Data);
-                break;
-        }
     }
 
     public void Dispose()

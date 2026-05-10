@@ -10,8 +10,8 @@ Describe TestPingAsyncCommand {
         }
 
         It 'Error' {
-            { Test-PingAsync -Target "$([guid]::NewGuid()).com" -ErrorAction Stop } |
-                Should -Throw -ExceptionType ([PSNetScanners.Ping.PingResultException])
+            $result = Test-PingAsync -Target "$([guid]::NewGuid()).com"
+            $result.Error | Should -BeOfType ([PSNetScanners.Ping.PingResultException])
         }
     }
 

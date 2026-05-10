@@ -21,35 +21,15 @@ public sealed class TcpResult : ResultBase
 
     public EndPoint? Client { get; private set; }
 
-    public TcpStatus Status { get; private set; }
-
-    public Exception? Error { get; private set; }
+    public TcpStatus Status { get; private set; } = TcpStatus.Opened;
 
     public override bool Success { get => Status == TcpStatus.Opened; }
 
-    private TcpResult(string source, TcpInput input) : base(source, input.Target)
-        => Port = input.Port;
-
-    private static TcpResult CreateSuccess(string source, TcpInput input, EndPoint client)
-        => new(source, input)
-        {
-            Status = TcpStatus.Opened,
-            Client = client
-        };
-
-    private static TcpResult CreateTimeout(string source, TcpInput input)
-        => new(source, input)
-        {
-            Status = TcpStatus.TimedOut,
-            Error = s_timeoutException
-        };
-
-    private static TcpResult CreateError(string source, TcpInput input, Exception exception)
-        => new(source, input)
-        {
-            Status = TcpStatus.Closed,
-            Error = exception
-        };
+    private TcpResult(string source, TcpInput input)
+        : base(source, input.Target)
+    {
+        Port = input.Port;
+    }
 
     internal static async Task<TcpResult> CreateAsync(
         string source,
@@ -57,25 +37,34 @@ public sealed class TcpResult : ResultBase
         Cancellation cancellation,
         int timeout)
     {
+        Task cancellationTask = cancellation.Task;
+        Task timeOutTask = cancellation.GetTimeoutTask(timeout);
+        TcpResult tcpResult = new(source, input);
+        using TcpClient tcp = new(input.AddressFamily);
+
         try
         {
-            using TcpClient tcp = new(input.AddressFamily);
             Task tcpTask = tcp.ConnectAsync(input.Target, input.Port);
-            Task result = await Task
-                .WhenAny(tcpTask, cancellation.Task, cancellation.GetTimeoutTask(timeout))
+            Task any = await Task
+                .WhenAny(tcpTask, cancellationTask, timeOutTask)
                 .NoContext();
 
-            if (result == tcpTask)
+            if (any == tcpTask)
             {
                 await tcpTask.NoContext();
-                return CreateSuccess(source, input, tcp.Client.RemoteEndPoint);
+                tcpResult.Client = tcp.Client.RemoteEndPoint;
+                return tcpResult;
             }
 
-            return CreateTimeout(source, input);
+            tcpResult.Status = TcpStatus.TimedOut;
+            tcpResult.Error = s_timeoutException;
+            return tcpResult;
         }
         catch (Exception exception)
         {
-            return CreateError(source, input, exception);
+            tcpResult.Status = TcpStatus.Closed;
+            tcpResult.Error = exception;
+            return tcpResult;
         }
     }
 }

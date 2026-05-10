@@ -7,9 +7,9 @@ internal interface IWorker<TInput> : IDisposable
 {
     string Source { get; }
     void Enqueue(TInput input);
-    bool TryTake(out Output result);
+    bool TryTake(out object result);
     void Cancel();
     void CompleteAdding();
     void Wait();
-    IEnumerable<Output> GetOutput();
+    IEnumerable<object> EnumerateOutput();
 }

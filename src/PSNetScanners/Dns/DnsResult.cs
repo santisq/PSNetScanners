@@ -29,6 +29,10 @@ public sealed class DnsSuccess : DnsResult
 
 public class DnsFailure : DnsResult
 {
+    internal static DnsFailure Timeout { get; } = new(
+        DnsStatus.Timeout,
+        new SocketException(11001));
+
     public Exception Exception { get; }
 
     internal DnsFailure(DnsStatus status, Exception exception)
@@ -36,9 +40,6 @@ public class DnsFailure : DnsResult
     {
         Exception = exception;
     }
-
-    internal static DnsFailure CreateTimeout() =>
-        new(DnsStatus.Timeout, new SocketException(11001));
 
     public override string ToString() => Exception.Message;
 }

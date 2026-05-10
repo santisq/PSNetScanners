@@ -52,12 +52,9 @@ public sealed class PingResult : ResultBase
         Cancellation cancellation)
     {
         using System.Net.NetworkInformation.Ping ping = new();
-
-        (PingOptions opt, int _, int timeout, byte[] buffer, bool resolveDns) = options;
-        Task<PingReply> pingTask = ping
-            .SendPingAsync(destination, timeout, buffer, opt);
-
         PingResult result = new(source, destination);
+        (PingOptions opt, int _, int timeout, byte[] buffer, bool resolveDns) = options;
+        Task<PingReply> pingTask = ping.SendPingAsync(destination, timeout, buffer, opt);
 
         try
         {
@@ -75,7 +72,7 @@ public sealed class PingResult : ResultBase
             if (any != dnsTask && any != pingTask)
             {
                 result.Status = IPStatus.TimedOut;
-                result.DnsResult = DnsFailure.CreateTimeout();
+                result.DnsResult = DnsFailure.Timeout;
                 return result;
             }
 
@@ -84,11 +81,11 @@ public sealed class PingResult : ResultBase
         }
         catch (PingException exception)
         {
-            throw new PingResultException(result, exception.InnerException);
+            result.Error = new PingResultException(result, exception.InnerException);
         }
         catch (Exception exception)
         {
-            throw new PingResultException(result, exception);
+            result.Error = new PingResultException(result, exception);
         }
 
         return result;
@@ -105,10 +102,7 @@ public sealed class PingResult : ResultBase
             .WhenAny(dns, timeout)
             .NoContext();
 
-        if (result == timeout)
-        {
-            return DnsFailure.CreateTimeout();
-        }
+        if (result == timeout) return DnsFailure.Timeout;
 
         try
         {

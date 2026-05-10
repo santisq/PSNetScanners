@@ -28,7 +28,11 @@ public sealed class TestPingAsyncCommand : PSNetScannerCommandBase<string>
 
     protected override void EnqueueAllTasks()
     {
-        foreach (string address in Target) Enqueue(address);
+        foreach (string address in Target)
+        {
+            Enqueue(address);
+            WriteCompleted();
+        }
     }
 
     internal override IWorker<string> CreateWorker()

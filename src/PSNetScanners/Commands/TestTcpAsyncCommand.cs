@@ -21,8 +21,13 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase<TcpInput>
     protected override void EnqueueAllTasks()
     {
         foreach (string address in Target)
+        {
             foreach (int port in Port)
+            {
                 Enqueue(new TcpInput(address, port));
+                WriteCompleted();
+            }
+        }
     }
 
     internal override IWorker<TcpInput> CreateWorker()
