@@ -14,7 +14,7 @@ Describe TestTcpAsyncCommand {
 
     Context 'TcpResult Type' {
         BeforeAll {
-            $result = Test-TcpAsync -Target google.com -Port 80
+            $result = Test-TcpAsync 8.8.8.8 -Port 53
             $result | Out-Null
         }
 

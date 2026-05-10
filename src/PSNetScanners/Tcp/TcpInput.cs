@@ -5,18 +5,14 @@ namespace PSNetScanners.Tcp;
 
 public readonly record struct TcpInput
 {
-    internal string Target { get; }
-
-    internal int Port { get; }
-
-    internal AddressFamily AddressFamily { get; }
+    internal readonly string Target;
+    internal readonly int Port;
+    internal readonly AddressFamily AddressFamily = AddressFamily.InterNetwork;
 
     internal TcpInput(string target, int port)
     {
         Target = target;
         Port = port;
-        AddressFamily = IPAddress.TryParse(target, out IPAddress ip)
-            ? ip.AddressFamily
-            : AddressFamily.InterNetwork;
+        if (IPAddress.TryParse(target, out IPAddress ip)) AddressFamily = ip.AddressFamily;
     }
 }

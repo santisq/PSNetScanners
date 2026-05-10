@@ -51,29 +51,14 @@ public sealed class PingResult : ResultBase
         PingAsyncOptions options,
         Cancellation cancellation)
     {
-        using System.Net.NetworkInformation.Ping ping = new();
         PingResult result = new(source, destination);
         (PingOptions opt, int _, int timeout, byte[] buffer, bool resolveDns) = options;
-        Task<PingReply> pingTask = ping.SendPingAsync(destination, timeout, buffer, opt);
 
         try
         {
-            result.Reply = await pingTask.NoContext();
-            if (!resolveDns) return result;
-
-            Task<DnsResult> dnsTask = GetDnsAsync(destination, options, cancellation);
-            Task any = await Task
-                .WhenAny(pingTask, cancellation.Task, dnsTask)
-                .NoContext();
-
-            if (any != dnsTask && any != pingTask)
-            {
-                result.Status = IPStatus.TimedOut;
-                result.DnsResult = DnsFailure.Timeout;
-                return result;
-            }
-
-            result.DnsResult = await dnsTask.NoContext();
+            using System.Net.NetworkInformation.Ping ping = new();
+            result.Reply = await ping.SendPingAsync(destination, timeout, buffer, opt).NoContext();
+            if (resolveDns) await SetDnsAsync(result, timeout, cancellation).NoContext();
         }
         catch (PingException exception)
         {
@@ -87,27 +72,21 @@ public sealed class PingResult : ResultBase
         return result;
     }
 
-    private static async Task<DnsResult> GetDnsAsync(
-        string destination,
-        PingAsyncOptions options,
+    private static async Task SetDnsAsync(
+        PingResult result,
+        int timeout,
         Cancellation cancellation)
     {
-        Task<IPHostEntry> dns = System.Net.Dns.GetHostEntryAsync(destination);
-        Task timeout = cancellation.GetTimeoutTask(options.TaskTimeout);
-        Task result = await Task
-            .WhenAny(dns, timeout)
-            .NoContext();
-
-        if (result == timeout) return DnsFailure.Timeout;
-
         try
         {
-            IPHostEntry entry = await dns.NoContext();
-            return new DnsSuccess(entry);
+            Task<IPHostEntry> dns = System.Net.Dns.GetHostEntryAsync(result.Destination);
+            Task timeoutTask = cancellation.GetTimeoutTask(timeout);
+            Task any = await Task.WhenAny(dns, timeoutTask, cancellation.Task).NoContext();
+            result.DnsResult = any == dns ? new DnsSuccess(await dns.NoContext()) : DnsFailure.Timeout;
         }
         catch (Exception exception)
         {
-            return new DnsFailure(DnsStatus.Error, exception);
+            result.DnsResult = new DnsFailure(DnsStatus.Error, exception);
         }
     }
 }

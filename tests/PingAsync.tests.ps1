@@ -69,6 +69,10 @@ Describe TestPingAsyncCommand {
         }
 
         It 'Success' {
+            $ping.Reply | Should -BeOfType ([PingReply])
+        }
+
+        It 'Success' {
             $ping.Success | Should -BeOfType ([bool])
         }
     }
