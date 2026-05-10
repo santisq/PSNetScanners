@@ -1,4 +1,5 @@
 ﻿using namespace System.IO
+using namespace System.Net.NetworkInformation
 
 Import-Module ([Path]::Combine($PSScriptRoot, 'common.psm1'))
 Import-Module $manifestPath
@@ -56,7 +57,7 @@ Describe TestPingAsyncCommand {
         }
 
         It 'Status' {
-            $ping.Status | Should -BeOfType ([System.Net.NetworkInformation.IPStatus])
+            $ping.Status | Should -BeOfType ([IPStatus])
         }
 
         It 'Address' {
@@ -88,6 +89,15 @@ Describe TestPingAsyncCommand {
             Measure-Command { $range | Test-PingAsync | Select-Object -First 10 } |
                 ForEach-Object TotalSeconds |
                 Should -BeLessThan 10
+        }
+
+        It 'Should be able to Cancel the cmdlet' {
+            $testCmdletCancellationSplat = @{
+                Script          = '$input | Test-PingAsync -ConnectionTimeout ([int]::MaxValue)'
+                ModulePath      = $manifestPath
+                InvocationInput = $range
+            }
+            Test-CmdletCancellation @testCmdletCancellationSplat | Should -BeLessThan ([timespan] '00:00:02')
         }
     }
 

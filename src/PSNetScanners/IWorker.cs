@@ -5,7 +5,6 @@ namespace PSNetScanners;
 
 internal interface IWorker<TInput> : IDisposable
 {
-    string Source { get; }
     void Enqueue(TInput input);
     bool TryTake(out object result);
     void Cancel();

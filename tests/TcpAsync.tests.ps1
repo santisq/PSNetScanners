@@ -1,4 +1,5 @@
 ﻿using namespace System.IO
+using namespace System.Net.Sockets
 
 Import-Module ([Path]::Combine($PSScriptRoot, 'common.psm1'))
 Import-Module $manifestPath
@@ -47,7 +48,7 @@ Describe TestTcpAsyncCommand {
 
         It 'Error' {
             $result = Test-TcpAsync -Target google.com -Port 8080 -ConnectionTimeout ([int]::MaxValue)
-            $result.Error | Should -BeOfType ([System.Net.Sockets.SocketException])
+            $result.Error | Should -BeOfType ([SocketException])
         }
     }
 
@@ -62,6 +63,15 @@ Describe TestTcpAsyncCommand {
             Measure-Command { $targets | Test-TcpAsync | Select-Object -First 5 } |
                 ForEach-Object TotalSeconds |
                 Should -BeLessOrEqual 1
+        }
+
+        It 'Should be able to Cancel the cmdlet' {
+            $testCmdletCancellationSplat = @{
+                Script          = '$input | Test-TcpAsync -ConnectionTimeout ([int]::MaxValue)'
+                ModulePath      = $manifestPath
+                InvocationInput = $targets
+            }
+            Test-CmdletCancellation @testCmdletCancellationSplat | Should -BeLessThan ([timespan] '00:00:02')
         }
     }
 
@@ -82,7 +92,7 @@ Describe TestTcpAsyncCommand {
             $result |
                 Where-Object Status -EQ TimedOut |
                 ForEach-Object Error |
-                Should -BeOfType ([System.Net.Sockets.SocketException])
+                Should -BeOfType ([SocketException])
         }
     }
 

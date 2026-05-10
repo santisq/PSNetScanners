@@ -23,8 +23,6 @@ internal abstract class WorkerBase<TInput, TResult>(int throttle)
 
     internal bool TryTake(out object result) => OutputQueue.TryTake(out result, 0, Token);
 
-    string IWorker<TInput>.Source { get => Source; }
-
     void IWorker<TInput>.Enqueue(TInput input) => Enqueue(input);
 
     bool IWorker<TInput>.TryTake(out object result) => TryTake(out result);
