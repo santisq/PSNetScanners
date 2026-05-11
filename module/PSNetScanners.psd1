@@ -11,7 +11,7 @@
     RootModule        = 'bin/netstandard2.0/PSNetScanners.dll'
 
     # Version number of this module.
-    ModuleVersion     = '1.0.0'
+    ModuleVersion     = '1.1.0'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -99,16 +99,17 @@
         PSData = @{
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags       = @(
-                'parallel'
-                'concurrency'
-                'runspace'
-                'parallel-processing'
                 'powershell'
+                'parallel-processing'
                 'multithreading'
                 'ping'
-                'async'
                 'tcp'
                 'icmp'
+                'dns'
+                'async'
+                'network'
+                'portscan'
+                'scanner'
             )
 
             # A URL to the license for this module.

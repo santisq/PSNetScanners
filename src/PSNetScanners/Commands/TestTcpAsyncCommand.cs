@@ -1,15 +1,14 @@
-using System;
 using System.Management.Automation;
 using System.Net;
 using PSNetScanners.Abstractions;
-using PSNetScanners.Dbg;
+using PSNetScanners.Tcp;
 
 namespace PSNetScanners.Commands;
 
 [Cmdlet(VerbsDiagnostic.Test, "TcpAsync")]
 [OutputType(typeof(TcpResult))]
 [Alias("tcpasync")]
-public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
+public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase<TcpInput>
 {
     [Parameter(
         Mandatory = true,
@@ -19,69 +18,18 @@ public sealed class TestTcpAsyncCommand : PSNetScannerCommandBase, IDisposable
     [Alias("p")]
     public int[] Port { get; set; } = null!;
 
-    private TcpWorker? _worker;
-
-    protected override void BeginProcessing()
+    protected override void EnqueueTasks()
     {
-        _worker = new TcpWorker(
-            throttle: ThrottleLimit,
-            timeout: ConnectionTimeout);
-    }
-
-    protected override void ProcessRecord()
-    {
-        Debug.Assert(_worker is not null);
-
-        try
+        foreach (string address in Target)
         {
-            foreach (string address in Target)
+            foreach (int port in Port)
             {
-                foreach (int port in Port)
-                {
-                    _worker.Enqueue(new TcpInput(
-                        source: _worker.Source,
-                        target: address,
-                        port: port));
-
-                    if (_worker.TryTake(out Output data))
-                    {
-                        Process(data);
-                    }
-                }
+                Enqueue(new TcpInput(address, port));
+                WriteCompleted();
             }
         }
-        catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
-        {
-            _worker.Cancel();
-            throw;
-        }
     }
 
-    protected override void EndProcessing()
-    {
-        Debug.Assert(_worker is not null);
-
-        try
-        {
-            _worker.CompleteAdding();
-            foreach (Output data in _worker.GetOutput())
-            {
-                Process(data);
-            }
-            _worker.Wait();
-        }
-        catch (Exception _) when (_ is PipelineStoppedException or FlowControlException)
-        {
-            _worker.Cancel();
-            throw;
-        }
-    }
-
-    protected override void StopProcessing() => _worker?.Cancel();
-
-    public void Dispose()
-    {
-        _worker?.Dispose();
-        GC.SuppressFinalize(this);
-    }
+    internal override IWorker<TcpInput> CreateWorker()
+        => new TcpWorker(ThrottleLimit, ConnectionTimeout);
 }

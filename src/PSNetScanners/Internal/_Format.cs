@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using System.Management.Automation;
+using PSNetScanners.Ping;
+using PSNetScanners.Tcp;
 
 namespace PSNetScanners.Internal;
 
@@ -9,8 +11,8 @@ namespace PSNetScanners.Internal;
 public static class _Format
 {
     [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
-    public static string GetFormattedLatency(PingResult pingResult) => pingResult._displayLatency;
+    public static string GetFormattedLatency(PingResult pingResult) => pingResult.LatencyAsString;
 
     [Hidden, EditorBrowsable(EditorBrowsableState.Never)]
-    public static string? GetClient(TcpResult tcp) => tcp._clientString;
+    public static string? GetClient(TcpResult tcp) => tcp.ClientString;
 }

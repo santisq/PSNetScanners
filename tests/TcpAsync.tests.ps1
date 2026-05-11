@@ -1,22 +1,20 @@
 ﻿using namespace System.IO
+using namespace System.Net.Sockets
 
-$moduleName = (Get-Item ([Path]::Combine($PSScriptRoot, '..', 'module', '*.psd1'))).BaseName
-$manifestPath = [Path]::Combine($PSScriptRoot, '..', 'output', $moduleName)
-
-Import-Module $manifestPath
 Import-Module ([Path]::Combine($PSScriptRoot, 'common.psm1'))
+Import-Module $manifestPath
 
-Describe TestPingAsyncCommand {
+Describe TestTcpAsyncCommand {
     Context 'Output Streams' {
         It 'Success' {
-            Test-TcpAsync -Target github.com -Port 80 |
-                Should -BeOfType ([PSNetScanners.TcpResult])
+            Test-TcpAsync -Target google.com -Port 80 |
+                Should -BeOfType ([PSNetScanners.Tcp.TcpResult])
         }
     }
 
     Context 'TcpResult Type' {
         BeforeAll {
-            $result = Test-TcpAsync -Target github.com -Port 80
+            $result = Test-TcpAsync 8.8.8.8 -Port 53
             $result | Out-Null
         }
 
@@ -44,9 +42,13 @@ Describe TestPingAsyncCommand {
             $result.Status | Should -BeExactly ([PSNetScanners.TcpStatus]::Opened)
         }
 
-        It 'Details' {
-            $result = Test-TcpAsync -Target github.com -Port 8080 -ConnectionTimeout ([int]::MaxValue)
-            $result.Details | Should -BeOfType ([System.Net.Sockets.SocketException])
+        It 'Success' {
+            $result.Success | Should -BeOfType ([bool])
+        }
+
+        It 'Error' {
+            $result = Test-TcpAsync -Target google.com -Port 8080 -ConnectionTimeout ([int]::MaxValue)
+            $result.Error | Should -BeOfType ([SocketException])
         }
     }
 
@@ -61,6 +63,15 @@ Describe TestPingAsyncCommand {
             Measure-Command { $targets | Test-TcpAsync | Select-Object -First 5 } |
                 ForEach-Object TotalSeconds |
                 Should -BeLessOrEqual 1
+        }
+
+        It 'Should be able to Cancel the cmdlet' {
+            $testCmdletCancellationSplat = @{
+                Script          = '$input | Test-TcpAsync -ConnectionTimeout ([int]::MaxValue)'
+                ModulePath      = $manifestPath
+                InvocationInput = $targets
+            }
+            Test-CmdletCancellation @testCmdletCancellationSplat | Should -BeLessThan ([timespan] '00:00:02')
         }
     }
 
@@ -80,14 +91,14 @@ Describe TestPingAsyncCommand {
             $result.Status | Should -Contain ([PSNetScanners.TcpStatus]::TimedOut)
             $result |
                 Where-Object Status -EQ TimedOut |
-                ForEach-Object Details |
-                Should -BeOfType ([System.Net.Sockets.SocketException])
+                ForEach-Object Error |
+                Should -BeOfType ([SocketException])
         }
     }
 
     Context 'Formatting' {
         BeforeAll {
-            $tcp = Test-TcpAsync github.com 80
+            $tcp = Test-TcpAsync google.com 80
             $tcp | Out-Null
         }
 

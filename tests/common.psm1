@@ -4,6 +4,33 @@
     $start..$end | ForEach-Object { "$ip.$_" }
 }
 
+function Test-CmdletCancellation {
+    param(
+        [Parameter(Mandatory)]
+        [string] $Script,
+
+        [Parameter(Mandatory)]
+        [string] $ModulePath,
+
+        [Parameter(Mandatory)]
+        [System.Management.Automation.PSDataCollection[psobject]] $InvocationInput,
+
+        [timespan] $DelayBeforeStop = '00:00:01')
+
+    $iss = [initialsessionstate]::CreateDefault2()
+    $iss.ImportPSModulesFromPath($ModulePath)
+    $ps = [powershell]::Create($iss).AddScript($Script)
+
+    Measure-Command {
+        $task = $ps.BeginInvoke($InvocationInput)
+        [System.Threading.Thread]::Sleep($DelayBeforeStop)
+        $ps.Stop()
+        try { $ps.EndInvoke($task) }
+        catch [System.Management.Automation.PipelineStoppedException] { } # expected
+        finally { $ps.Dispose() }
+    }
+}
+
 $targets = @'
 Target,Port
 google.com,80
@@ -25,5 +52,9 @@ google.com,636
 cisco.com,636
 amazon.com,636
 '@ | ConvertFrom-Csv
+
+$moduleName = (Get-Item ([Path]::Combine($PSScriptRoot, '..', 'module', '*.psd1'))).BaseName
+$manifestPath = [Path]::Combine($PSScriptRoot, '..', 'output', $moduleName)
+$manifestPath, $targets | Out-Null
 
 Export-ModuleMember -Function * -Variable *
