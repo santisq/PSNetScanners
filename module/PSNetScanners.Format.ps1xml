@@ -56,11 +56,11 @@
         <TableHeaders>
           <TableColumnHeader>
             <Label>Source</Label>
-            <Width>16</Width>
+            <Width>20</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Destination</Label>
-            <Width>16</Width>
+            <Width>20</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Address</Label>
@@ -107,11 +107,11 @@
         <TableHeaders>
           <TableColumnHeader>
             <Label>Source</Label>
-            <Width>16</Width>
+            <Width>20</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Destination</Label>
-            <Width>16</Width>
+            <Width>20</Width>
           </TableColumnHeader>
           <TableColumnHeader>
             <Label>Client</Label>
