@@ -9,15 +9,16 @@ schema: 2.0.0
 
 ## SYNOPSIS
 
-Parallel ICMP scanner.
+Sends ICMP echo requests (pings) to one or more targets in parallel.
 
 ## SYNTAX
 
 ```powershell
 Test-PingAsync
     [-Target] <String[]>
-    [-BufferSize <Int32>
-    [-ResolveDns] [-Ttl <Int32>]
+    [-BufferSize <Int32>]
+    [-ResolveDns]
+    [-Ttl <Int32>]
     [-DontFragment]
     [-ThrottleLimit <Int32>]
     [-ConnectionTimeout <Int32>]
@@ -26,70 +27,107 @@ Test-PingAsync
 
 ## DESCRIPTION
 
-`Test-PingAsync` is a PowerShell cmdlet that ICMP echo-requests in parallel using [`Ping.SendPingAsync` Method](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping.sendpingasync). In essence, it's like `Test-Connection` with less options but faster.
+The `Test-PingAsync` cmdlet sends ICMP echo requests to multiple targets concurrently using the [.NET `Ping.SendPingAsync` method](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping.sendpingasync).
+
+It provides a faster, lightweight alternative to `Test-Connection` when you need high-performance parallel scanning with basic options.
+
+> [!IMPORTANT]
+>
+> This cmdlet __never throws terminating errors__. It uses a result-oriented pattern — any errors (DNS resolution failures, etc.) are captured in the `.Error` property of the returned object.
 
 ## EXAMPLES
 
-### Example 1: Send parallel echo-requests to remote hosts
+### Example 1: Ping multiple hosts in parallel
 
 ```powershell
 PS ..\> Test-PingAsync google.com, github.com
 
-Source           Destination      Address             Latency Status       DnsResult
-------           -----------      -------             ------- ------       ---------
-DESKTOP-1111111  google.com       142.251.133.206        8 ms Success
-DESKTOP-1111111  github.com       20.201.28.151         37 ms Success
+Source       Destination      Address             Latency Status
+------       -----------      -------             ------- ------
+DESKTOP-XYZ  google.com       142.251.128.46         9 ms Success
+DESKTOP-XYZ  github.com       4.228.31.150          41 ms Success
 ```
 
-### Example 2: Attempt to resolve DNS name for multiple hosts
+### Example 2: Resolve DNS names for the targets
 
 ```powershell
 PS ..\> $result = Test-PingAsync 8.8.8.8, 8.8.4.4, 1.1.1.1 -ResolveDns
-PS ..\> $result
-
-Source           Destination      Address             Latency Status       DnsResult
-------           -----------      -------             ------- ------       ---------
-DESKTOP-1111111  8.8.8.8          8.8.8.8                8 ms Success      dns.google
-DESKTOP-1111111  8.8.4.4          8.8.4.4                8 ms Success      dns.google
-DESKTOP-1111111  1.1.1.1          1.1.1.1                8 ms Success      one.one.one.one
-
-PS ..\> $result[0].DnsResult
+PS ..\> $result.DnsResult
 
 Status      : Success
 HostName    : dns.google
 AddressList : {8.8.8.8, 8.8.4.4}
 Aliases     : {}
+
+Status      : Success
+HostName    : dns.google
+AddressList : {8.8.8.8, 8.8.4.4}
+Aliases     : {}
+
+Status      : Success
+HostName    : one.one.one.one
+AddressList : {1.1.1.1, 1.0.0.1}
+Aliases     : {}
 ```
 
-### Example 3: Specify a connection timeout for each request
+### Example 3: Specify a per-request timeout
 
 ```powershell
-PS ..\> 1..20 | ForEach-Object { "192.168.1.$_" } | Test-PingAsync -ConnectionTimeout 200
+PS ..\> $range = 1..10 | ForEach-Object { "192.168.1.$_" }
+PS ..\> $range | Test-PingAsync -ConnectionTimeout 200
 
-Source           Destination      Address             Latency Status       DnsResult
-------           -----------      -------             ------- ------       ---------
-DESKTOP-1111111  192.168.1.1      192.168.1.1            0 ms Success
-DESKTOP-1111111  192.168.1.5      192.168.1.5            0 ms Success
-DESKTOP-1111111  192.168.1.14     192.168.1.14           3 ms Success
-DESKTOP-1111111  192.168.1.7      192.168.1.7          137 ms Success
-DESKTOP-1111111  192.168.1.3      192.168.1.3          204 ms Success
-DESKTOP-1111111  192.168.1.2      *                         * TimedOut
-DESKTOP-1111111  192.168.1.4      *                         * TimedOut
-DESKTOP-1111111  192.168.1.6      *                         * TimedOut
-DESKTOP-1111111  192.168.1.8      *                         * TimedOut
-DESKTOP-1111111  192.168.1.9      *                         * TimedOut
-DESKTOP-1111111  192.168.1.10     *                         * TimedOut
-DESKTOP-1111111  192.168.1.11     *                         * TimedOut
-DESKTOP-1111111  192.168.1.12     *                         * TimedOut
-...
-...
+Source       Destination      Address             Latency Status
+------       -----------      -------             ------- ------
+DESKTOP-XYZ  192.168.1.4      192.168.1.4            0 ms Success
+DESKTOP-XYZ  192.168.1.1      192.168.1.1           35 ms Success
+DESKTOP-XYZ  192.168.1.2      192.168.1.2          314 ms Success
+DESKTOP-XYZ  192.168.1.3      *                         * TimedOut
+DESKTOP-XYZ  192.168.1.5      *                         * TimedOut
+DESKTOP-XYZ  192.168.1.6      *                         * TimedOut
+DESKTOP-XYZ  192.168.1.7      *                         * TimedOut
+DESKTOP-XYZ  192.168.1.8      *                         * TimedOut
+DESKTOP-XYZ  192.168.1.9      *                         * TimedOut
+DESKTOP-XYZ  192.168.1.10     *                         * TimedOut
 ```
+
+### Example 4: Handling resolution failures
+
+```powershell
+PS ..\> $result = Test-PingAsync google.com, doesnotexist.xy
+PS ..\> $result
+
+Source       Destination      Address             Latency Status
+------       -----------      -------             ------- ------
+DESKTOP-XYZ  google.com       142.251.128.238       11 ms Success
+DESKTOP-XYZ  doesnotexist.xy  *                         * Unknown
+
+PS ..\> $result[1].Error
+
+TargetSite     :
+Message        : Failed to resolve host 'doesnotexist.xy'. No such host is known.
+Data           : {}
+InnerException : System.Net.Sockets.SocketException (11001): No such host is known.
+                    at System.Net.NameResolutionPal.ProcessResult(SocketError errorCode, GetAddrInfoExContext* context)
+                    at System.Net.NameResolutionPal.GetAddressInfoExCallback(Int32 error, Int32 bytes, NativeOverlapped* overlapped)
+                 --- End of stack trace from previous location ---
+                    at System.Net.NetworkInformation.Ping.<>c.<<SendPingAsync>b__56_0>d.MoveNext()
+                 --- End of stack trace from previous location ---
+                    at System.Net.NetworkInformation.Ping.SendPingAsyncInternal[TArg](TArg getAddressArg, Func`3 getAddress, Int32 timeout, Byte[] buffer, PingOptions options, CancellationToken cancellationToken)
+HelpLink       :
+Source         :
+HResult        : -2146233088
+StackTrace     :
+```
+
+> [!IMPORTANT]
+>
+> This cmdlet does not throw exceptions. All errors are captured in the `.Error` property.
 
 ## PARAMETERS
 
 ### -Target
 
-Specifies one or more remote computers, Uris or Ip addresses to test connectivity.
+Specifies one or more targets to test. You can use hostnames, FQDNs, IPv4/IPv6 addresses, or URIs.
 
 ```yaml
 Type: String[]
@@ -105,11 +143,11 @@ Accept wildcard characters: False
 
 ### -BufferSize
 
-Specifies the size, in bytes, of the buffer sent with this command.
+Specifies the size, in bytes, of the data buffer sent with the ICMP request.
 
 > [!NOTE]
 >
-> The default value is 32.
+> The default value is 32 bytes.
 
 ```yaml
 Type: Int32
@@ -125,12 +163,12 @@ Accept wildcard characters: False
 
 ### -ConnectionTimeout
 
-Specifies a timeout __in milliseconds__ for each async task.
+Specifies the timeout (in milliseconds) for each individual ping request.
 
 > [!NOTE]
 >
-> - If a task is not completed after this timeout, the status will be `TimedOut`.
-> - The default value for this parameter is `4000` (4 seconds).
+> - If a request does not complete within this time, its status becomes `TimedOut`.
+> - Default value is __4000__ (4 seconds).
 
 ```yaml
 Type: Int32
@@ -139,14 +177,16 @@ Aliases: timeout, to, ct
 
 Required: False
 Position: Named
-Default value: None
+Default value: 4000
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
 ### -DontFragment
 
-This parameter sets the Don't Fragment flag in the IP header. See [`PingOptions.DontFragment` Property](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.pingoptions.dontfragment#system-net-networkinformation-pingoptions-dontfragment) for more information.
+Sets the _Don't Fragment_ flag in the IP header.
+
+See [`PingOptions.DontFragment`](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.pingoptions.dontfragment#system-net-networkinformation-pingoptions-dontfragment) for more information.
 
 ```yaml
 Type: SwitchParameter
@@ -162,7 +202,7 @@ Accept wildcard characters: False
 
 ### -ResolveDns
 
-Causes the cmdlet to attempt to resolve the DNS name of the target.
+Attempts to resolve the DNS hostname for each target and includes the result in the `DnsResult` property.
 
 ```yaml
 Type: SwitchParameter
@@ -178,11 +218,11 @@ Accept wildcard characters: False
 
 ### -ThrottleLimit
 
-Specifies the maximum number of async tasks to run in parallel.
+Limits the maximum number of concurrent ping requests.
 
 > [!NOTE]
 >
-> The default value for `-ThrottleLimit` is `50`.
+> The default value __50__.
 
 ```yaml
 Type: Int32
@@ -191,14 +231,18 @@ Aliases: tl
 
 Required: False
 Position: Named
-Default value: None
+Default value: 50
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
 ### -Ttl
 
-Sets the maximum number of hops that an ICMP request message can be sent. The default value is controlled by the operating system. The default value for Windows 10 and higher is 128 hops.
+Sets the Time to Live (TTL) value for the ICMP packets (maximum number of hops).
+
+> [!NOTE]
+>
+> Must be between __1__ and __255__. Default is __128__.
 
 ```yaml
 Type: Int32
@@ -207,7 +251,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: None
+Default value: 128
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
@@ -222,14 +266,16 @@ This cmdlet supports the common parameters. For more information, see [about_Com
 
 ## OUTPUTS
 
-### PSNetScanners.PingResult
+### PSNetScanners.Ping.PingResult
 
 ## NOTES
 
+- DNS resolution occurs automatically when a hostname is provided.
+- Designed for performance — exceptions are never thrown.
+- Always check `.Status`, `.Success` and `.Error` on each result object.
+
 ## RELATED LINKS
 
-[`Ping.SendPingAsync` Method](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping.sendpingasync)
+[__`Ping` Class__](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping)
 
-[`PingOptions.DontFragment` Property](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.pingoptions.dontfragment#system-net-networkinformation-pingoptions-dontfragment)
-
-[about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216)
+[__`Ping.SendPingAsync` Method__](https://learn.microsoft.com/en-us/dotnet/api/system.net.networkinformation.ping.sendpingasync)

@@ -8,10 +8,4 @@ internal sealed class PingWorker(PingAsyncOptions options)
 {
     protected override Task<PingResult> CreateAsync(string destination)
         => PingResult.CreateAsync(Source, destination, options, Cancellation);
-
-    protected override void Dispose(bool disposing)
-    {
-        base.Dispose(disposing);
-        Cancellation.Dispose();
-    }
 }

@@ -9,7 +9,7 @@ schema: 2.0.0
 
 ## SYNOPSIS
 
-Parallel TCP scanner.
+Tests TCP port connectivity to one or more targets in parallel.
 
 ## SYNTAX
 
@@ -24,55 +24,60 @@ Test-TcpAsync
 
 ## DESCRIPTION
 
-`Test-TcpAsync` is a PowerShell cmdlet that tests TCP connectivity in parallel using [`TcpClient.ConnectAsync` Method](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.connectasync). In essence, it's like `Test-NetConnection` with `-Port` but faster.
+The `Test-TcpAsync` cmdlet tests TCP connectivity to one or more targets across multiple ports using the [.NET `TcpClient.ConnectAsync` method](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.connectasync).
+
+It is a fast, parallel alternative to `Test-NetConnection -Port`.
+
+> [!IMPORTANT]
+>
+> This cmdlet __never throws terminating errors__. It uses a result-oriented pattern — any errors (timeouts, refused connections, DNS issues, etc.) are captured in the `.Error` property of the returned object.
 
 ## EXAMPLES
 
-### Example 1: Test TCP connectivity on multiple ports for a specified host
+### Example 1: Test multiple ports on a single host
 
 ```powershell
 PS ..\> Test-TcpAsync google.com 20, 25, 80, 443
 
-Source           Destination      Client             Port Status
-------           -----------      ------             ---- ------
-DESKTOP-1111111  google.com       142.251.134.14       80 Opened
-DESKTOP-1111111  google.com       142.251.134.14      443 Opened
-DESKTOP-1111111  google.com                            20 TimedOut
-DESKTOP-1111111  google.com                            25 TimedOut
+Source       Destination      Client             Port Status
+------       -----------      ------             ---- ------
+DESKTOP-XYZ  google.com       142.251.128.142      80 Opened
+DESKTOP-XYZ  google.com       142.251.128.142     443 Opened
+DESKTOP-XYZ  google.com                            25 TimedOut
+DESKTOP-XYZ  google.com                            20 TimedOut
 ```
 
-### Example 2: Test TCP connectivity on multiple ports for multiple hosts
+### Example 2: Test multiple ports on multiple hosts
 
 ```powershell
 PS ..\> Test-TcpAsync google.com, github.com 20, 25, 80, 443
 
-Source           Destination      Client             Port Status
-------           -----------      ------             ---- ------
-DESKTOP-1111111  google.com       142.251.134.14      443 Opened
-DESKTOP-1111111  google.com       142.251.134.14       80 Opened
-DESKTOP-1111111  github.com       20.201.28.151        80 Opened
-DESKTOP-1111111  github.com       20.201.28.151       443 Opened
-DESKTOP-1111111  google.com                            20 TimedOut
-DESKTOP-1111111  google.com                            25 TimedOut
-DESKTOP-1111111  github.com                            20 TimedOut
-DESKTOP-1111111  github.com                            25 TimedOut
+Source       Destination      Client             Port Status
+------       -----------      ------             ---- ------
+DESKTOP-XYZ  google.com       142.251.134.14      443 Opened
+DESKTOP-XYZ  google.com       142.251.134.14       80 Opened
+DESKTOP-XYZ  github.com       20.201.28.151        80 Opened
+DESKTOP-XYZ  github.com       20.201.28.151       443 Opened
+DESKTOP-XYZ  google.com                            20 TimedOut
+DESKTOP-XYZ  google.com                            25 TimedOut
+DESKTOP-XYZ  github.com                            20 TimedOut
+DESKTOP-XYZ  github.com                            25 TimedOut
 ```
 
-### Example 3: Specify a timeout for TCP connectivity
+### Example 3: Specify a custom timeout
 
 ```powershell
 PS ..\> $result = Test-TcpAsync github.com 20, 80 -ConnectionTimeout 30000
 PS ..\> $result
 
-Source           Destination      Client             Port Status
-------           -----------      ------             ---- ------
-DESKTOP-1111111  github.com       20.201.28.151        80 Opened
-DESKTOP-1111111  github.com                            20 Closed
+Source       Destination      Client             Port Status
+------       -----------      ------             ---- ------
+DESKTOP-XYZ  github.com       20.201.28.151        80 Opened
+DESKTOP-XYZ  github.com                            20 Closed
 
-PS ..\> $result.Error
+PS ..\> $result[1].Error
 
-Message         : A connection attempt failed because the connected party did not properly respond after a period of
-                  time, or established connection failed because connected host has failed to respond.
+Message         : A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.
 SocketErrorCode : TimedOut
 ErrorCode       : 10060
 NativeErrorCode : 10060
@@ -82,43 +87,40 @@ InnerException  :
 HelpLink        :
 Source          : System.Net.Sockets
 HResult         : -2147467259
-StackTrace      :    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error,
-                  CancellationToken cancellationToken)
-                     at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTa
-                  skSource.GetResult(Int16 token)
+StackTrace      :    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+                     at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource.GetResult(Int16 token)
                      at System.Threading.Tasks.ValueTask.ValueTaskSourceAsTask.<>c.<.cctor>b__4_0(Object state)
                   --- End of stack trace from previous location ---
                      at System.Net.Sockets.TcpClient.CompleteConnectAsync(Task task)
-                     at PSNetScanners.TcpResult.CreateAsync(TcpInput input, Cancellation cancellation, Int32 timeout)
-                  in D:\PSNetScanners\src\PSNetScanners\TcpResult.cs:line 64
+                     at PSNetScanners.Tcp.TcpResult.CreateAsync(String source, TcpInput input, Cancellation cancellation, Int32 timeout) in D:\pwsh\PSNetScanners\src\PSNetScanners\Tcp\TcpResult.cs:line 57
 ```
 
-### Example 4: Use a CSV as input
+### Example 4: Import targets and ports from CSV
 
 ```powershell
 PS ..\> Import-Csv targets.csv | Test-TcpAsync
 
-Source           Destination      Client             Port Status
-------           -----------      ------             ---- ------
-DESKTOP-1111111  google.com       142.251.133.206      80 Opened
-DESKTOP-1111111  google.com       142.251.133.206     443 Opened
-DESKTOP-1111111  github.com       20.201.28.151       443 Opened
-DESKTOP-1111111  github.com       20.201.28.151        80 Opened
-DESKTOP-1111111  amazon.com       52.94.236.248       443 Opened
-DESKTOP-1111111  cisco.com        72.163.4.185        443 Opened
-DESKTOP-1111111  cisco.com        72.163.4.185         80 Opened
-DESKTOP-1111111  amazon.com       52.94.236.248        80 Opened
+Source       Destination      Client             Port Status
+------       -----------      ------             ---- ------
+DESKTOP-XYZ  google.com       142.251.133.206      80 Opened
+DESKTOP-XYZ  google.com       142.251.133.206     443 Opened
+DESKTOP-XYZ  github.com       20.201.28.151       443 Opened
+DESKTOP-XYZ  github.com       20.201.28.151        80 Opened
+DESKTOP-XYZ  amazon.com       52.94.236.248       443 Opened
+DESKTOP-XYZ  cisco.com        72.163.4.185        443 Opened
+DESKTOP-XYZ  cisco.com        72.163.4.185         80 Opened
+DESKTOP-XYZ  amazon.com       52.94.236.248        80 Opened
 ```
 
 > [!TIP]
 >
-> Both parameters `-Target` and `-Port` take value from pipeline by property name, if your CSV headers match the parameters names or their aliases, you can use a CSV as input for this cmdlet.
+> The cmdlet accepts pipeline input by property name. Any column name that matches the parameter name or any of its aliases will bind automatically.
 
 ## PARAMETERS
 
 ### -Target
 
-Specifies one or more remote computers, Uris or Ip addresses to test connectivity.
+Specifies one or more targets to test. Accepts hostnames, FQDNs, IPv4/IPv6 addresses, or URIs.
 
 ```yaml
 Type: String[]
@@ -134,7 +136,7 @@ Accept wildcard characters: False
 
 ### -Port
 
-Specifies one or many TCP ports to test connectivity to the specified targets.
+Specifies one or more TCP ports to test.
 
 ```yaml
 Type: Int32[]
@@ -150,14 +152,12 @@ Accept wildcard characters: False
 
 ### -ConnectionTimeout
 
-Specifies a timeout __in milliseconds__ for each async task.
+Specifies the timeout (in milliseconds) for each connection attempt.
 
 > [!NOTE]
 >
-> - If a task is not completed after this timeout, the status will be `TimedOut`.
-> - If your `-ConnectionTimeout` is greater than the maximum timeout of [`TcpClient`](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient) and the connection fails, the status will be `Closed`.
-> - In both cases of a connectivity failure, the `.Error` property will be populated with a `SocketException`.
-> - The default value for this parameter is `4000` (4 seconds).
+> - If a request does not complete within this time, its status becomes `TimedOut`.
+> - Default value is __4000__ (4 seconds).
 
 ```yaml
 Type: Int32
@@ -173,11 +173,11 @@ Accept wildcard characters: False
 
 ### -ThrottleLimit
 
-Specifies the maximum number of async tasks to run in parallel.
+Limits the maximum number of concurrent ping requests.
 
 > [!NOTE]
 >
-> The default value for `-ThrottleLimit` is `50`.
+> The default value __50__.
 
 ```yaml
 Type: Int32
@@ -203,14 +203,16 @@ This cmdlet supports the common parameters. For more information, see [about_Com
 
 ## OUTPUTS
 
-### PSNetScanners.TcpResult
+### PSNetScanners.Tcp.TcpResult
 
 ## NOTES
 
+- DNS resolution occurs automatically when a hostname is provided.
+- This cmdlet is optimized for high-performance parallel scanning.
+- Always check the `Status` and `.Error` properties for detailed failure information.
+
 ## RELATED LINKS
 
-[`TcpClient.ConnectAsync` Method](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.connectasync)
+[__`TcpClient` Class__](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient)
 
-[`TcpClient`](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient)
-
-[about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216)
+[__`TcpClient.ConnectAsync` Method__](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.tcpclient.connectasync)
